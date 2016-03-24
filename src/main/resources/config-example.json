@@ -1,0 +1,10 @@
+{
+  "databases": [
+    {
+      "name": "config-name",
+      "url": "jdbc:postgresql://localhost:5432/portal",
+      "user": "postgres",
+      "password": "12345678"
+    }
+  ]
+}
