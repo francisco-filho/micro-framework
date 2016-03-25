@@ -19,13 +19,7 @@ public interface DatabaseInterface {
 
     ResultSet query(String q, Object... params) throws SQLException;
 
-    Map<String,Object> first(String query, Object... params) throws SQLException;
-
-    void insert(String q, Object... params) throws SQLException;
-
-    int delete(String table, String where) throws SQLException;
-
-    public void execute(String query);
+    int execute(String query, Object... params);
 
     int copyFrom(DatabaseInterface source, String query, String targetTable) throws SQLException;
     public List<File> copyTo(String query, File file) throws SQLException;

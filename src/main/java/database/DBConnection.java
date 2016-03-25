@@ -1,5 +1,6 @@
 package database;
 
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 import util.Config;
 import util.Util;
 
@@ -7,27 +8,35 @@ import java.io.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * Created by F3445038 on 12/11/2014.
  */
-public class Database implements DatabaseInterface {
+public class DBConnection implements DatabaseInterface {
 
     protected Connection conn = null;
     public final int BATCH_SIZE = 10_000;
 
     Map<String,Object> config = new HashMap<>();
 
-    public Database(String db) {
+    public DBConnection(String db) {
        this.config = new Config().get(db);
     }
 
-    public Database(Map<String, Object> c){
-        this.config = c;
+    public DBConnection(ComboPooledDataSource cpds){
+        try {
+            this.conn = cpds.getConnection();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
+    public DBConnection(Map<String, Object> c){
+        this.config = c;
+    }
 
     @Override
     public Connection connect() throws SQLException {
@@ -44,7 +53,7 @@ public class Database implements DatabaseInterface {
             Class.forName("com.ibm.db2.jcc.DB2Driver");
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException ex) {
-            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DBConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         conn = DriverManager.getConnection(url, user, password);
@@ -119,8 +128,7 @@ public class Database implements DatabaseInterface {
         return list;
     }
 
-    @Override
-    public Map<String, Object> first(String query, Object... params) throws SQLException {
+    public Row first(String query, Object... params) throws SQLException {
         ResultSet rs = this.query(query, params);
 
         ResultSetMetaData rsmd = rs.getMetaData();
@@ -130,16 +138,14 @@ public class Database implements DatabaseInterface {
             String col = rsmd.getColumnName(i);
         }
 
-        Map<String,Object> map = new HashMap<>();
-        //loop through rs
+        Row row = new Row();
         if (rs.next()){
             for(int i = 1; i <= columnLength; i++){
                 String colName = rsmd.getColumnName(i);
-                map.put(colName, rs.getObject(colName));
+                row.put(colName, rs.getObject(colName));
             }
         }
-
-        return map;
+        return row;
     }
 
     @Override
@@ -249,7 +255,6 @@ public class Database implements DatabaseInterface {
 
     }
 
-    @Override
     public void insert(String q, Object... params) throws SQLException {
         PreparedStatement stmt = this.conn.prepareStatement(q);
 
@@ -259,7 +264,6 @@ public class Database implements DatabaseInterface {
         stmt.executeUpdate();
     }
 
-    @Override
     public int delete(String table, String where) throws SQLException {
         String delete = "DELETE FROM " + table + " WHERE " + where + ";";
         PreparedStatement stmt = this.getConnection().prepareStatement(delete);
@@ -267,14 +271,31 @@ public class Database implements DatabaseInterface {
     }
 
     @Override
-    public void execute(String query) {
+    public int execute(String query, Object... params) {
         PreparedStatement stmt = null;
         try {
             stmt = this.getConnection().prepareStatement(query);
-            stmt.executeUpdate();
+
+            for(int i = 0; i < params.length; i++){
+                stmt.setObject(i+1,params[i]);
+            }
+
+            return stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return 0;
+    }
+
+    public Row insertAndReturn(String query, Object... params) {
+        PreparedStatement stmt = null;
+        try {
+            String q = query.replace(";$", "").replace("$", " RETURN *");
+            return first(query, params);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
@@ -339,5 +360,35 @@ public class Database implements DatabaseInterface {
         this.getConnection().commit();
 
         return files;
+    }
+
+    public void tx(DatabaseConsumer<DBConnection> db) throws SQLException {
+        try {
+            this.getConnection().setAutoCommit(false);
+            db.accept(this);
+            this.getConnection().commit();
+        } catch(SQLException ex){
+            this.getConnection().rollback();
+            ex.printStackTrace();
+        }
+    }
+
+    public RowList tx(Function<DBConnection, Object> db)  {
+        RowList result = null;
+        try {
+            this.getConnection().setAutoCommit(false);
+            result = (RowList)db.apply(this);
+            this.getConnection().commit();
+        } catch(SQLException ex){
+
+            ex.printStackTrace();
+        }
+        try {
+            this.getConnection().rollback();
+        } catch(SQLException ex){
+            ex.printStackTrace();
+        }
+
+        return result;
     }
 }
