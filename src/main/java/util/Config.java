@@ -6,6 +6,7 @@
 
 package util;
 
+import database.DBConnection;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -17,15 +18,17 @@ import java.util.Map;
  * @author f3445038
  */
 public class Config {
-
     private Map<String,JSONObject> itemConfig = new HashMap<>();
-    
+    private boolean serveStatic = false;
+    private String defaultDBConnection = null;
+
     public Config(){
         this.loadConfigFromFile();
     }
 
     private void loadConfigFromFile(){
         JSONObject obj = Util.readJson("config.json");
+        defaultDBConnection = (String)obj.get("default-connection");
 
         JSONArray jsonArray = (JSONArray)obj.get("databases");
 
@@ -34,8 +37,28 @@ public class Config {
             itemConfig.put((String)item.get("name"), item);
         });
     }
+
+    public boolean getServeStatic(){
+        return this.serveStatic;
+    }
+
+    public void setServeStatic(boolean serve){
+        this.serveStatic = serve;
+    }
     
     public Map<String,Object> get(String config){
         return this.itemConfig.get(config);
+    }
+
+    public Map<String, JSONObject> getItens(){
+        return this.itemConfig;
+    }
+
+    public String getDefaultDBConnection() {
+        return defaultDBConnection;
+    }
+
+    public void setDefaultDBConnection(String defaultDBConnection) {
+        this.defaultDBConnection = defaultDBConnection;
     }
 }
