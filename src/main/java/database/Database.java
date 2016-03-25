@@ -28,6 +28,7 @@ public class Database implements DatabaseInterface {
         this.config = c;
     }
 
+
     @Override
     public Connection connect() throws SQLException {
         if (conn != null){
@@ -69,15 +70,13 @@ public class Database implements DatabaseInterface {
 
     @Override
     public ResultSet query(String q, Object... params) throws SQLException {
-        List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
-
         PreparedStatement stmt = this.conn.prepareStatement(q);
 
         for(int i = 0; i < params.length; i++){
             if (params[i] != null)
                 stmt.setObject(i+1, params[i]);
             else
-                stmt.setNull(i+1, Types.INTEGER);
+                stmt.setNull(i+1, Types.OTHER);
         }
 
         stmt.setFetchSize(BATCH_SIZE);
@@ -86,27 +85,35 @@ public class Database implements DatabaseInterface {
         return rs;
     }
 
-    @Override
-    public List<Map<String, Object>> list(String query, Object... params) throws SQLException {
-        List<Map<String,Object>> list = new ArrayList<Map<String, Object>>();
-        ResultSet rs = this.query(query, params);
+    public RowList list(String query, Object... params) {
+        RowList list = new RowList();
+        ResultSet rs = null;
+        int columnLength = 0;
+        try {
+            if (params == null){
+                params = new Object[]{null};
+            }
 
-        ResultSetMetaData rsmd = rs.getMetaData();
-        int columnLength = rsmd.getColumnCount();
+            rs = this.query(query, params);
 
-        for(int i = 1; i <= columnLength; i++){
-            String col = rsmd.getColumnName(i);
-        }
-
-        //loop through rs
-        while(rs.next()){
-            LinkedHashMap<String,Object> map = new LinkedHashMap<>();
+            ResultSetMetaData rsmd = rs.getMetaData();
+            columnLength = rsmd.getColumnCount();
 
             for(int i = 1; i <= columnLength; i++){
-                String colName = rsmd.getColumnName(i);
-                map.put(colName, rs.getObject(colName));
+                String col = rsmd.getColumnName(i);
             }
-            list.add(map);
+
+            while(rs.next()){
+                Row map = new Row();
+
+                for(int i = 1; i <= columnLength; i++){
+                    String colName = rsmd.getColumnName(i);
+                    map.put(colName, rs.getObject(colName));
+                }
+                list.add(map);
+            }
+        } catch(SQLException ex){
+            ex.printStackTrace();
         }
 
         return list;

@@ -1,5 +1,6 @@
 package server;
 
+import javax.security.auth.login.LoginContext;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,18 +34,30 @@ public class Route {
         }
     }
 
+    @Override
+    public String toString() {
+        return "Route{" +
+                "uri='" + uri + '\'' +
+                ", uriPattern=" + uriPattern +
+                ", fieldPattern=" + fieldPattern +
+                ", requestData=" + requestData +
+                '}';
+    }
+
     public String getUri(){
         return this.uri;
     }
 
     public boolean test(String uriEntrada){
+
         if (this.uri.equals(uriEntrada)){
             return true;
         } else
         if (uriPattern != null){
             //valida URI contra regex uriPattern
-            Matcher match = uriPattern.matcher(uriEntrada);
-            if (match.groupCount() > 1){
+
+            if (uriPattern.matcher(uriEntrada).matches()){
+                Matcher match = uriPattern.matcher(uriEntrada);
                 Matcher fields = fieldPattern.matcher(this.uri);
                 int i = 1;
                 if (match.find()) {
@@ -56,7 +69,7 @@ public class Route {
                         requestData.put(paramNames.get(x - 1), match.group(x));
                     }
                 }
-                if (match.matches())
+                if (uriPattern.matcher(uriEntrada).matches())
                     return true;
             }
         }

@@ -1,26 +1,13 @@
-import database.Database;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.util.StringUtil;
+import database.DatabaseManager;
+import database.Row;
+import database.RowList;
+import org.apache.commons.fileupload.FileItem;
 import server.App;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.sql.PooledConnection;
-import java.io.IOException;
-import java.util.Date;
+import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.sun.xml.internal.ws.api.message.Packet.Status.Request;
 
 /**
  * Created by f3445038 on 21/03/16.
@@ -28,31 +15,38 @@ import static com.sun.xml.internal.ws.api.message.Packet.Status.Request;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        Database db = new Database("dired");
-        db.connect();
-        db.list("SELECT  * FROM pg_stat_activity").forEach((row) -> {
-            System.out.println(row.toString());
-        });
-        db.disconnect();
 
-        /*
+        DatabaseManager db = new DatabaseManager("dired");
+
         App app = new App();
+        app.serveStatic(true);
 
-        app.get("/api/teste/:name/:id", (req, res)-> {
-            req.params.get("id");
-            Map<String, Object> map = req.params;
-            res.status(200).json(map);
+        app.get("/api/teste/:id", (req, res) -> {
+            res.json(db.tx((dired)->{
+                return dired.list("SELECT  * FROM dependencia ORDER BY 1 LIMIT 10");
+            }));
         });
 
-        app.get("/api/teste", (req, res) -> {
-            List<Integer> list = new LinkedList<>();
-            list.add(1);
-            list.add(2);
-            list.add(3);
-            res.json(list);
+        app.post("/api/teste/:name/:id", (req, res)-> {
+            List<FileItem> files = (List<FileItem>)req.params.remove("files");
+            for (FileItem f : files) {
+                System.out.println(f);
+            }
+            System.out.println(req.params);
+            RowList row = db.tx((dired)->{
+                String p = (String)req.params.get("id");
+                String x= null;
+                //return dired.list("SELECT DISTINCT * FROM dependencia WHERE prefixo = ?", Integer.parseInt(p));
+                return dired.list("SELECT DISTINCT * FROM dependencia WHERE prefixo = ?", null);
+            });
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            res.status(200).json(files);
         });
 
         app.listen(3000);
-        */
     }
 }

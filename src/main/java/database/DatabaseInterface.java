@@ -19,8 +19,6 @@ public interface DatabaseInterface {
 
     ResultSet query(String q, Object... params) throws SQLException;
 
-    List<Map<String,Object>> list(String query, Object... params) throws SQLException;
-
     Map<String,Object> first(String query, Object... params) throws SQLException;
 
     void insert(String q, Object... params) throws SQLException;

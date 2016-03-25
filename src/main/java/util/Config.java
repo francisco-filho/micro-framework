@@ -18,13 +18,13 @@ import java.util.Map;
  */
 public class Config {
 
-    public Map<String,JSONObject> itemConfig = new HashMap<>();
+    private Map<String,JSONObject> itemConfig = new HashMap<>();
     
     public Config(){
         this.loadConfigFromFile();
     }
 
-    public void loadConfigFromFile(){
+    private void loadConfigFromFile(){
         JSONObject obj = Util.readJson("config.json");
 
         JSONArray jsonArray = (JSONArray)obj.get("databases");

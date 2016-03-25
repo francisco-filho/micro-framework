@@ -220,6 +220,11 @@ public class Util {
         return Util.joinCsvLine(list,sep);
     }
 
+    public static File getPublicDirectory(){
+        ClassLoader classLoader = Util.class.getClassLoader();
+        return new File(classLoader.getResource("public").getFile());
+    }
+
     public static JSONObject readJson(String resourceFileName){
         JSONParser parser = new JSONParser();
         try {
