@@ -1,5 +1,7 @@
 package server;
 
+import database.DBConnection;
+import database.TriConsumer;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -10,6 +12,8 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
+import util.Config;
+import util.TriFunction;
 import util.Util;
 
 import javax.servlet.ServletException;
@@ -19,6 +23,7 @@ import java.io.*;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 /**
  * Created by f3445038 on 21/03/16.
@@ -26,15 +31,22 @@ import java.util.function.BiFunction;
 public class App extends AbstractHandler{
 
     private Server server = null;
+    private final Config config;
     private AppRouter appRouter = new AppRouter();
-    private boolean serveStatic = false;
 
-    public App(){}
+    public App(){
+        this.config = new Config();
+    }
+
+    public App(Consumer<Config> config){
+        this();
+        config.accept(this.config);
+    }
 
     public void listen(int port) throws Exception {
         server = new Server(port);
 
-        if (serveStatic){
+        if (config.getServeStatic()){
             ResourceHandler rh = new ResourceHandler();
             rh.setResourceBase(Util.getPublicDirectory().getAbsolutePath());
             rh.setDirectoriesListed(true);
@@ -66,6 +78,7 @@ public class App extends AbstractHandler{
         }
 
         Route route = appRouter.getRoute(request.getRequest());
+
         route.execute(request, response);
 
         jettyRequest.setHandled(true);
@@ -120,7 +133,15 @@ public class App extends AbstractHandler{
         return appRouter.add("GET", new Route(uri, fn));
     }
 
+    public Object get(String uri, TriFunction<DBConnection, AppRequest, AppResponse, Object> fn){
+        return appRouter.add("GET", new Route(uri, fn));
+    }
+
     public void get(String uri, BiConsumer<AppRequest, AppResponse> fn){
+        appRouter.add("GET", new Route(uri, fn));
+    }
+
+    public void get(String uri, TriConsumer<AppRequest, AppResponse,DBConnection> fn){
         appRouter.add("GET", new Route(uri, fn));
     }
 
@@ -128,7 +149,7 @@ public class App extends AbstractHandler{
         appRouter.add("POST", new Route(uri, fn));
     }
 
-    public void serveStatic(boolean s) {
-        this.serveStatic = s;
+    public Config getConfig() {
+        return config;
     }
 }

@@ -1,15 +1,14 @@
 package server;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.util.MultiMap;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
+import util.TypedHashMap;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,7 +19,7 @@ public class AppRequest {
 
     private Request request;
     private HttpServletRequest httpRequest;
-    public Map<String,Object> params = new HashMap<>();
+    public TypedHashMap params = new TypedHashMap();
 
     public AppRequest(Request request){
         this.request = request;

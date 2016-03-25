@@ -1,5 +1,8 @@
 package server;
 
+import database.DBConnection;
+import database.TriConsumer;
+
 import javax.security.auth.login.LoginContext;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -34,16 +37,6 @@ public class Route {
         }
     }
 
-    @Override
-    public String toString() {
-        return "Route{" +
-                "uri='" + uri + '\'' +
-                ", uriPattern=" + uriPattern +
-                ", fieldPattern=" + fieldPattern +
-                ", requestData=" + requestData +
-                '}';
-    }
-
     public String getUri(){
         return this.uri;
     }
@@ -76,6 +69,18 @@ public class Route {
         return false;
     }
 
+    public void execute(AppRequest request, AppResponse response, DBConnection dbConnection) {
+        execute(request, response);
+
+        if (fn instanceof TriConsumer){
+            TriConsumer<AppRequest, AppResponse, DBConnection> toExecute =
+                    (TriConsumer<AppRequest, AppResponse, DBConnection>)fn;
+            response.getHttpServletResponse().setStatus(200);
+            toExecute.accept(request, response, dbConnection);
+            request.getRequest().setHandled(true);
+        }
+    }
+
     public void execute(AppRequest request, AppResponse response){
         if (this.requestData.size() > 0){
             request.params.putAll(this.requestData);
@@ -106,5 +111,15 @@ public class Route {
             toExecute.accept(request, response);
             request.getRequest().setHandled(true);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Route{" +
+                "uri='" + uri + '\'' +
+                ", uriPattern=" + uriPattern +
+                ", fieldPattern=" + fieldPattern +
+                ", requestData=" + requestData +
+                '}';
     }
 }
