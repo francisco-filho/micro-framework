@@ -3,6 +3,7 @@ import database.ConnectionPool;
 import database.RowList;
 import org.apache.commons.fileupload.FileItem;
 import server.App;
+import server.middleware.Logger;
 import util.Config;
 
 import java.util.List;
@@ -18,6 +19,8 @@ public class Main {
         App app = new App((config) -> {
             config.setServeStatic(true);
         });
+
+        app.use(new Logger());
 
         app.get("/api/teste/:id", (req, res) -> {
             DBConnection db = new DBConnection(pool.get("production"));

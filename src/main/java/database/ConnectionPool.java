@@ -36,10 +36,13 @@ public class ConnectionPool {
         }
     }
 
+    /**
+     * Get JDBC Connection
+     * @param dataSourceName
+     */
     public Connection getConnection(String dataSourceName){
         for(ComboPooledDataSource cpds: dataSources){
             if (cpds.getDataSourceName().equals(dataSourceName)){
-                System.out.println(cpds);
                 try {
                     return cpds.getConnection();
                 } catch (SQLException e) {
@@ -50,10 +53,13 @@ public class ConnectionPool {
         return null;
     }
 
+    /**
+     * Get the c3p0 pooled datasource
+     * @param dataSourceName
+     */
     public ComboPooledDataSource get(String dataSourceName){
         for(ComboPooledDataSource cpds: dataSources){
             if (cpds.getDataSourceName().equals(dataSourceName)){
-                System.out.println(cpds);
                 return cpds;
             }
         }

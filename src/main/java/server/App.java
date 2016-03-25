@@ -12,6 +12,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
+import server.middleware.Middleware;
 import util.Config;
 import util.TriFunction;
 import util.Util;
@@ -33,6 +34,7 @@ public class App extends AbstractHandler{
     private Server server = null;
     private final Config config;
     private AppRouter appRouter = new AppRouter();
+    private List<Middleware> middlewares = new LinkedList<>();
 
     public App(){
         this.config = new Config();
@@ -66,11 +68,8 @@ public class App extends AbstractHandler{
 
     @Override
     public void handle(String s, Request jettyRequest, HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
-        System.out.println(new Date() + " " + req.getMethod() + " " + "" + req.getContentType() + " " +req.getRequestURI());
-
         AppResponse response = new AppResponse(res);
         AppRequest request = new AppRequest(jettyRequest);
-
         //handling files
         if (req.getContentType() != null && (req.getContentType().startsWith("multipart/form-data")
                 || req.getContentType().equals("false"))){
@@ -78,9 +77,21 @@ public class App extends AbstractHandler{
         }
 
         Route route = appRouter.getRoute(request.getRequest());
+        if (route == null) {
+            res.setStatus(404);
+            jettyRequest.setHandled(true);
+            return;
+        }
 
+        //executa todos os middlewares em ordem, se algum retornar 'false' então sai
+        for (Middleware middleware : middlewares) {
+            boolean canContinue = middleware.execute(request, response);
+            if (!canContinue) {
+                jettyRequest.setHandled(true);
+                return;
+            }
+        }
         route.execute(request, response);
-
         jettyRequest.setHandled(true);
     }
 
@@ -128,6 +139,9 @@ public class App extends AbstractHandler{
         return params;
     }
 
+    public void use(Middleware middleware){
+        this.middlewares.add(middleware);
+    }
 
     public Object get(String uri, BiFunction<AppRequest, AppResponse, Object> fn){
         return appRouter.add("GET", new Route(uri, fn));

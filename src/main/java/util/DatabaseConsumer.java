@@ -1,4 +1,4 @@
-package database;
+package util;
 
 import java.sql.SQLException;
 import java.util.Objects;

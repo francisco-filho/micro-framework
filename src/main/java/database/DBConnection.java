@@ -2,6 +2,7 @@ package database;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import util.Config;
+import util.DatabaseConsumer;
 import util.Util;
 
 import java.io.*;
