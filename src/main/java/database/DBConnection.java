@@ -129,22 +129,26 @@ public class DBConnection implements DatabaseInterface {
         return list;
     }
 
-    public Row first(String query, Object... params) throws SQLException {
-        ResultSet rs = this.query(query, params);
-
-        ResultSetMetaData rsmd = rs.getMetaData();
-        int columnLength = rsmd.getColumnCount();
-
-        for(int i = 1; i <= columnLength; i++){
-            String col = rsmd.getColumnName(i);
-        }
-
+    public Row first(String query, Object... params) {
         Row row = new Row();
-        if (rs.next()){
+        try {
+            ResultSet rs = this.query(query, params);
+
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int columnLength = rsmd.getColumnCount();
+
             for(int i = 1; i <= columnLength; i++){
-                String colName = rsmd.getColumnName(i);
-                row.put(colName, rs.getObject(colName));
+                String col = rsmd.getColumnName(i);
             }
+
+            if (rs.next()){
+                for(int i = 1; i <= columnLength; i++){
+                    String colName = rsmd.getColumnName(i);
+                    row.put(colName, rs.getObject(colName));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return row;
     }
@@ -290,13 +294,8 @@ public class DBConnection implements DatabaseInterface {
 
     public Row insertAndReturn(String query, Object... params) {
         PreparedStatement stmt = null;
-        try {
-            String q = query.replace(";$", "").replace("$", " RETURN *");
-            return first(query, params);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
+        String q = query.replace(";$", "").replace("$", " RETURN *");
+        return first(query, params);
     }
 
     @Override

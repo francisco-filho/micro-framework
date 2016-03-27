@@ -1,20 +1,16 @@
 package server.middleware;
 
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import server.App;
 import server.AppRequest;
 import server.AppResponse;
 
-import javax.naming.InvalidNameException;
-import javax.naming.ldap.LdapName;
 import javax.servlet.http.Cookie;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLEncoder;
-import java.sql.SQLException;
+import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,6 +28,8 @@ public class AutenticadorOpenAM implements AppMiddleware {
     private final String LOGIN_URL = String.format("%s://%s:%s/%s", PROTOCOL, HOST, PORT, URI);
     private final String LOGOUT_URL = String.format("%s://%s:%s/%s", PROTOCOL, HOST, PORT, "OpenAM-13.0.0/logout");
     private final String IDENTITY_URL = String.format("%s://%s:%s/%s", PROTOCOL, HOST, PORT, IDENTITY_URI);
+    private final String TOKEN_VALIDATION_URI = String.format("%s://%s:%s/%s", PROTOCOL, HOST, PORT, "OpenAM-13.0.0/json/sessions/");
+    private final String TOKEN_VALIDATION_OLD_URI = String.format("%s://%s:%s/%s", PROTOCOL, HOST, PORT, "identity/isTokenValid?tokenid");
     private final String SSO_COOKIE = "iPlanetDirectoryPro";
     private final int    CONNECTION_TIMEOUT = 1_000;
     private final int    MAX_SESSION_INTERVAL = 60*15;
@@ -52,6 +50,7 @@ public class AutenticadorOpenAM implements AppMiddleware {
 
         app.get("/auth/userdetails", (req, res) -> {
             Object obj = req.getSession().getAttribute(USER_SESSION_ATTR);
+            System.err.println(app.getDb("production").list("SELECT * FROM pessoas WHERE id = 100"));
             res.json(obj);
         });
     }
@@ -69,9 +68,9 @@ public class AutenticadorOpenAM implements AppMiddleware {
     public boolean execute(AppRequest request, AppResponse response) throws IOException {
         Cookie c = request.getCookie(SSO_COOKIE);
         Map<String, String> identityMap = new HashMap<>();
-        String TO_LOGIN = LOGIN_URL + URLEncoder.encode("http://www.example.com:3000/");
+        String TO_LOGIN = LOGIN_URL + URLEncoder.encode(String.format("%s://%s:%s", PROTOCOL, HOST, PORT));
 
-        if (usuarioEstaNaSecao(request)){
+        if (usuarioEstaNaSecao(request) && isTokenValid(c.getValue(), true)){
             return true;
         }
         //não há usuário na secão, tenta cookie ou redireciona para login
@@ -119,7 +118,6 @@ public class AutenticadorOpenAM implements AppMiddleware {
             response.redirectTo(TO_LOGIN);
             return false;
         }
-
         response.redirectTo(TO_LOGIN);
         return false;
     }
@@ -149,24 +147,45 @@ public class AutenticadorOpenAM implements AppMiddleware {
         return identityMap;
     }
 
-    private String getIdentityFromOpenAM(String url ) throws IOException {
-        URLConnection connection;
-        connection = new URL( url ).openConnection();
-        connection.setRequestProperty("Request-Method", "GET");
-        connection.setConnectTimeout( CONNECTION_TIMEOUT );
-        connection.setReadTimeout( CONNECTION_TIMEOUT );
-        connection.setDoInput(true);
-        connection.setDoOutput(false);
+    private String http(String method, String url) throws IOException {
+        HttpURLConnection urlConnection = (HttpURLConnection) new URL(url).openConnection();
+        urlConnection.setRequestMethod(method);
+        urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
+        urlConnection.setReadTimeout(CONNECTION_TIMEOUT);
+        urlConnection.connect();
 
-        connection.connect();
-        BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(),"UTF-8"));
-        StringBuffer newData = new StringBuffer(10000);
-        String s = "";
-        while (null != ((s = br.readLine()))) {
-            newData.append(s);
-            newData.append("\n");
+        StringBuilder builder;
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))) {
+            builder = new StringBuilder();
+            String line = "";
+            while (null != (line = br.readLine())) {
+                builder.append(line + "\n");
+            }
+        } catch (IOException ioex) {
+            ioex.printStackTrace();
+            throw ioex;
         }
-        br.close();
-        return newData.toString();
+        return builder.toString();
+    }
+
+    private String getIdentityFromOpenAM(String url ) throws IOException {
+        return http("GET", url);
+    }
+
+    private boolean isTokenValid(String token, Boolean newAPI){
+        try {
+            String result;
+            if (newAPI == null || !newAPI)
+                result = http("GET", TOKEN_VALIDATION_OLD_URI + token);
+            else
+                result = http("POST", TOKEN_VALIDATION_URI + token + "?_action=validate");
+
+            JSONObject response = (JSONObject)JSONValue.parse(result);
+
+            return (Boolean)response.get("valid");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

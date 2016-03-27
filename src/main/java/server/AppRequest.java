@@ -80,6 +80,7 @@ public class AppRequest {
     }
 
     public Cookie getCookie(String iPlanetDirectoryPro) {
+        if (request.getCookies() == null) return null;
         for (Cookie c : request.getCookies()) {
             if (c.getName() != null && c.getName().equals(iPlanetDirectoryPro)) {
                 return c;

@@ -85,19 +85,26 @@ public class App extends AbstractHandler{
         AppResponse response = new AppResponse(res);
         AppRequest request = new AppRequest(jettyRequest);
 
-        //request.params.put("auth", auth);
         //handling files
         if (req.getContentType() != null && (req.getContentType().startsWith("multipart/form-data")
                 || req.getContentType().equals("false"))){
             request.params.putAll(processFile(req));
         }
 
-        Route route = appRouter.getRoute(request.getRequest());
+        Route route;
+        synchronized (AppRouter.class) {
+            route = appRouter.getRoute(request.getRequest());
+        }
         if (route == null) {
             res.setStatus(404);
             jettyRequest.setHandled(true);
             return;
         }
+        //System.out.println(request.getRequest().getRequestURI().replaceAll("/api/teste/1/", "-> "));
+
+
+        /*
+        //'iPlanetDirectoryPro=AQIC5wM2LY4SfcwmPbpzIJVh4y6ZW2R81YO5stC0Z4oS3A8.*AAJTSQACMDEAAlNLABQtNTYwNDgxNDQxOTE4OTE4ODM5NAACUzEAAA..*'
 
         //executa todos os middlewares em ordem, se algum retornar 'false' então sai
         for (Middleware middleware : middlewares) {
@@ -107,7 +114,9 @@ public class App extends AbstractHandler{
                 return;
             }
         }
+        */
         route.execute(request, response);
+
         jettyRequest.setHandled(true);
     }
 

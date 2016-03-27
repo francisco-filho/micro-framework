@@ -3,11 +3,12 @@ package util;
 import java.lang.reflect.MalformedParameterizedTypeException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by francisco on 25/03/16.
  */
-public class TypedHashMap extends HashMap<String, Object> {
+public class TypedHashMap extends ConcurrentHashMap<String, Object> {
 
     public Integer getInt(String k){
         Object tmp = this.get(k);

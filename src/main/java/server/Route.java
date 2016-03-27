@@ -23,7 +23,7 @@ public class Route {
     private final Pattern uriPattern;
     private final Object fn;
     private final Pattern fieldPattern  = Pattern.compile(":([a-zA-Z0-9]+)");
-    private final Map<String, String> requestData = new HashMap<>();
+    public final Map<String, String> requestData = new HashMap<>();
 
     public Route(String uri, Object fn){
         this.uri = uri;
@@ -82,7 +82,9 @@ public class Route {
     }
 
     public void execute(AppRequest request, AppResponse response){
+
         if (this.requestData.size() > 0){
+
             request.params.putAll(this.requestData);
         }
         if (fn == null){
