@@ -3,9 +3,12 @@ import database.ConnectionPool;
 import database.RowList;
 import org.apache.commons.fileupload.FileItem;
 import server.App;
+import server.middleware.Autenticador;
+import server.middleware.AutenticadorOpenAM;
 import server.middleware.Logger;
 import util.Config;
 
+import javax.servlet.http.Cookie;
 import java.util.List;
 
 /**
@@ -14,30 +17,30 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        ConnectionPool pool = new ConnectionPool(new Config());
-
         App app = new App((config) -> {
             config.setServeStatic(true);
+            config.useConnectionPool(true);
         });
 
+        app.use(new AutenticadorOpenAM());
         app.use(new Logger());
 
         app.get("/api/teste/:id", (req, res) -> {
-            DBConnection db = new DBConnection(pool.get("production"));
+            DBConnection db = app.getDb("production");
             res.json(db.list("SELECT  * FROM dependencia WHERE prefixo = ?", req.params.getInt("id")));
         });
 
         app.get("/api/teste/:name/:id", (req, res) -> {
-            DBConnection db = new DBConnection(pool.get("production"));
-
+            DBConnection db = app.getDb("production");
+            /*
             List<FileItem> files = (List<FileItem>)req.params.remove("files");
             for (FileItem f : files) {
                 System.out.println(f);
-            }
+            }*/
             RowList row = db.tx((portal) -> {
                 return portal.list("SELECT DISTINCT * FROM dependencia WHERE prefixo = ?", req.params.getInt("id"));
             });
-            res.status(200).json(files);
+            res.status(200).json(row);
         });
         app.listen(3000);
     }

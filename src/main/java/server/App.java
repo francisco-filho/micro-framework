@@ -1,5 +1,6 @@
 package server;
 
+import database.ConnectionPool;
 import database.DBConnection;
 import database.TriConsumer;
 import org.apache.commons.fileupload.FileItem;
@@ -12,11 +13,15 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.server.session.SessionHandler;
+import server.middleware.AppMiddleware;
+import server.middleware.Autenticador;
 import server.middleware.Middleware;
 import util.Config;
 import util.TriFunction;
 import util.Util;
 
+import javax.naming.OperationNotSupportedException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -32,7 +37,8 @@ import java.util.function.Consumer;
 public class App extends AbstractHandler{
 
     private Server server = null;
-    private final Config config;
+    private Config config;
+    private ConnectionPool connectionPool;
     private AppRouter appRouter = new AppRouter();
     private List<Middleware> middlewares = new LinkedList<>();
 
@@ -43,6 +49,14 @@ public class App extends AbstractHandler{
     public App(Consumer<Config> config){
         this();
         config.accept(this.config);
+        if (this.config.useConnectionPool){
+            this.connectionPool  = new ConnectionPool(this.config);
+        }
+    }
+
+    public DBConnection getDb(String db){
+        if (!this.config.useConnectionPool) throw new RuntimeException();
+        return new DBConnection(connectionPool.get(db));
     }
 
     public void listen(int port) throws Exception {
@@ -56,7 +70,7 @@ public class App extends AbstractHandler{
             rh.setMinMemoryMappedContentLength(-1);
 
             HandlerList handlers = new HandlerList();
-            handlers.setHandlers( new Handler[] {rh, this});
+            handlers.setHandlers( new Handler[] {new SessionHandler(), rh, this});
             server.setHandler(handlers);
         } else {
             server.setHandler(this);
@@ -70,6 +84,8 @@ public class App extends AbstractHandler{
     public void handle(String s, Request jettyRequest, HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
         AppResponse response = new AppResponse(res);
         AppRequest request = new AppRequest(jettyRequest);
+
+        //request.params.put("auth", auth);
         //handling files
         if (req.getContentType() != null && (req.getContentType().startsWith("multipart/form-data")
                 || req.getContentType().equals("false"))){
@@ -140,6 +156,8 @@ public class App extends AbstractHandler{
     }
 
     public void use(Middleware middleware){
+        if (middleware instanceof AppMiddleware)
+            ((AppMiddleware)middleware).init(App.this);
         this.middlewares.add(middleware);
     }
 

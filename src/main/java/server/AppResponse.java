@@ -55,4 +55,12 @@ public class AppResponse {
     public HttpServletResponse getHttpServletResponse(){
         return response;
     }
+
+    public void redirectTo(String loginURI) {
+        try {
+            response.sendRedirect(loginURI);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

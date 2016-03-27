@@ -21,6 +21,7 @@ public class Config {
     private Map<String,JSONObject> itemConfig = new HashMap<>();
     private boolean serveStatic = false;
     private String defaultDBConnection = null;
+    public boolean useConnectionPool = true;
 
     public Config(){
         this.loadConfigFromFile();
@@ -61,4 +62,10 @@ public class Config {
     public void setDefaultDBConnection(String defaultDBConnection) {
         this.defaultDBConnection = defaultDBConnection;
     }
+
+    public void useConnectionPool(boolean b) {
+        this.useConnectionPool = b;
+    }
+
+
 }

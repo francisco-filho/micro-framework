@@ -1,7 +1,11 @@
 package server;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.session.JDBCSessionManager;
 import org.eclipse.jetty.util.MultiMap;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -67,4 +71,20 @@ public class AppRequest {
         return this.request;
     }
 
+    public HttpSession getSession() {
+        return request.getSession();
+    }
+
+    public Cookie[] getCookies() {
+        return request.getCookies();
+    }
+
+    public Cookie getCookie(String iPlanetDirectoryPro) {
+        for (Cookie c : request.getCookies()) {
+            if (c.getName() != null && c.getName().equals(iPlanetDirectoryPro)) {
+                return c;
+            }
+        }
+        return null;
+    }
 }
