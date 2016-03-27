@@ -1,0 +1,3 @@
+#alguns comandos úteis para test
+#curl -H "Accept: application/json" -X GET --cookie "iPlanetDirectoryPro=AQIC5wM2LY4SfcwmPbpzIJVh4y6ZW2R81YO5stC0Z4oS3A8.*AAJTSQACMDEAAlNLABQtNTYwNDgxNDQxOTE4OTE4ODM5NAACUzEAAA..*" -I http://www.example.com:3000/auth/userdetails
+#cat pref.txt | cut -d"," -f1 | cut -d":" -f2 | sort
