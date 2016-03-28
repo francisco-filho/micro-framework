@@ -17,7 +17,7 @@ import java.net.URL;
 /**
  * Created by francisco on 25/03/16.
  */
-public class Autenticador implements AppMiddleware {
+public class AutenticadorFacebook implements AppMiddleware {
 
     private String clientSecret = "c3b4d298cbf3434db4d5fe322bb5c590";
     private final String clientId = "1066607956736864";
