@@ -15,13 +15,11 @@ import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.session.SessionHandler;
 import server.middleware.AppMiddleware;
-import server.middleware.Autenticador;
 import server.middleware.Middleware;
 import util.Config;
 import util.TriFunction;
 import util.Util;
 
-import javax.naming.OperationNotSupportedException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -42,6 +40,8 @@ public class App extends AbstractHandler{
     private AppRouter appRouter = new AppRouter();
     private List<Middleware> middlewares = new LinkedList<>();
 
+    private final ThreadLocal<DBConnection> dbConnections = new ThreadLocal<>();
+
     public App(){
         this.config = new Config();
     }
@@ -56,7 +56,8 @@ public class App extends AbstractHandler{
 
     public DBConnection getDb(String db){
         if (!this.config.useConnectionPool) throw new RuntimeException();
-        return new DBConnection(connectionPool.get(db));
+        dbConnections.set(new DBConnection(connectionPool.get(db)));
+        return dbConnections.get();
     }
 
     public void listen(int port) throws Exception {
@@ -100,12 +101,6 @@ public class App extends AbstractHandler{
             jettyRequest.setHandled(true);
             return;
         }
-        //System.out.println(request.getRequest().getRequestURI().replaceAll("/api/teste/1/", "-> "));
-
-
-        /*
-        //'iPlanetDirectoryPro=AQIC5wM2LY4SfcwmPbpzIJVh4y6ZW2R81YO5stC0Z4oS3A8.*AAJTSQACMDEAAlNLABQtNTYwNDgxNDQxOTE4OTE4ODM5NAACUzEAAA..*'
-
         //executa todos os middlewares em ordem, se algum retornar 'false' então sai
         for (Middleware middleware : middlewares) {
             boolean canContinue = middleware.execute(request, response);
@@ -114,9 +109,11 @@ public class App extends AbstractHandler{
                 return;
             }
         }
-        */
         route.execute(request, response);
 
+        if (dbConnections.get() != null){
+            dbConnections.get().disconnect();
+        }
         jettyRequest.setHandled(true);
     }
 
@@ -160,7 +157,6 @@ public class App extends AbstractHandler{
         } catch (FileUploadException e) {
             e.printStackTrace();
         }
-
         return params;
     }
 

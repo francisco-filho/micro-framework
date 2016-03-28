@@ -31,7 +31,16 @@ public class ConnectionPool {
             cpds.setJdbcUrl((String)obj.get("url"));
             cpds.setUser((String)obj.get("user"));
             cpds.setPassword((String)obj.get("password"));
-
+            cpds.setInitialPoolSize(5);
+            cpds.setMinPoolSize(5);
+            cpds.setMaxPoolSize(30);
+            cpds.setMaxIdleTimeExcessConnections(60*15);
+            cpds.setMaxIdleTime(60*30);
+            cpds.setAcquireIncrement(10);
+            cpds.setAcquireRetryAttempts(5);
+            cpds.setCheckoutTimeout(2000);
+            cpds.setUnreturnedConnectionTimeout(2000);
+            cpds.setDebugUnreturnedConnectionStackTraces(true);
             dataSources.add(cpds);
         }
     }
@@ -50,6 +59,7 @@ public class ConnectionPool {
                 }
             }
         }
+        System.out.println("not aquire");
         return null;
     }
 
@@ -58,9 +68,12 @@ public class ConnectionPool {
      * @param dataSourceName
      */
     public ComboPooledDataSource get(String dataSourceName){
+
         for(ComboPooledDataSource cpds: dataSources){
-            if (cpds.getDataSourceName().equals(dataSourceName)){
-                return cpds;
+            synchronized (cpds){
+                if (cpds.getDataSourceName().equals(dataSourceName)){
+                    return cpds;
+                }
             }
         }
         return null;

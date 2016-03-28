@@ -156,11 +156,7 @@ public class DBConnection implements DatabaseInterface {
     @Override
     public int copyFrom(DatabaseInterface source, String query, String targetTable) throws SQLException {
         this.conn.setAutoCommit(false);
-        //executa consulta no banco "source"
-        //System.err.println("Start Query....");
 
-        //PreparedStatement stmt = source.getConnection().prepareStatement(query);
-        //ResultSet rs = stmt.executeQuery();
         ResultSet rs = source.query(query);
 
         //verifica quantidade de colunas retornada na consulta
@@ -182,7 +178,7 @@ public class DBConnection implements DatabaseInterface {
         int executeResult = 0;
         final int batchSize = BATCH_SIZE;
         int count = 0;
-        //Thread.sleep(500);
+
         while (rs.next()){
             for(int i = 0; i < columnLength; i++){
                 int index = i + 1;
@@ -218,7 +214,6 @@ public class DBConnection implements DatabaseInterface {
     public void pipeToStdout(DatabaseInterface source, String query, boolean multicommand) throws SQLException, IOException {
         SimpleDateFormat sdf = new SimpleDateFormat("d/M/y k:m:s-S ");
         char delimiter = '|';
-        //System.err.println("start query -> " + sdf.format(Calendar.getInstance().getTime()));
 
         ResultSet rs = null;
         if (!multicommand){
@@ -301,11 +296,8 @@ public class DBConnection implements DatabaseInterface {
     @Override
     public List<File> copyTo(String query, File file) throws SQLException {
         //executa consulta no banco "source"
-        System.err.println("Start Query....");
         List<File> files = new ArrayList<File>();
 
-        //PreparedStatement stmt = source.getConnection().prepareStatement(query);
-        //ResultSet rs = stmt.executeQuery();
         ResultSet rs = this.query(query);
 
         //verifica quantidade de colunas retornada na consulta
@@ -316,13 +308,11 @@ public class DBConnection implements DatabaseInterface {
 
         //Inseri dados na tabela "targetFile" do banco atual
         String targetFile = file.getName();
-        //file = new File(targetFile + ".csv");
         files.add(file);
 
         int executeResult = 0;
         final int batchSize = BATCH_SIZE;
         int count = 0, fileCount = 1;
-        //Thread.sleep(500);
         PrintWriter writer = null;
 
         try {
