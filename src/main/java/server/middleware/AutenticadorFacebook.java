@@ -101,7 +101,6 @@ public class AutenticadorFacebook implements AppMiddleware {
         });
     }
 
-    @Override
     public boolean execute(AppRequest request, AppResponse response) {
         HttpSession session = request.getRequest().getSession();
         if (!(Boolean)session.getAttribute("authenticated") && !request.getRequest().getRequestURI().startsWith("/api/code")){

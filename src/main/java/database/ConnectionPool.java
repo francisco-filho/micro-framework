@@ -33,12 +33,12 @@ public class ConnectionPool {
             cpds.setPassword((String)obj.get("password"));
             cpds.setInitialPoolSize(5);
             cpds.setMinPoolSize(5);
-            cpds.setMaxPoolSize(30);
+            cpds.setMaxPoolSize(50);
             cpds.setMaxIdleTimeExcessConnections(60*15);
             cpds.setMaxIdleTime(60*30);
             cpds.setAcquireIncrement(10);
             cpds.setAcquireRetryAttempts(5);
-            cpds.setCheckoutTimeout(2000);
+            cpds.setCheckoutTimeout(6000);
             cpds.setUnreturnedConnectionTimeout(2000);
             cpds.setDebugUnreturnedConnectionStackTraces(true);
             dataSources.add(cpds);

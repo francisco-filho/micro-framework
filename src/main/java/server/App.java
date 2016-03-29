@@ -1,7 +1,7 @@
 package server;
 
 import database.ConnectionPool;
-import database.DBConnection;
+import database.DB;
 import database.TriConsumer;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
@@ -15,7 +15,6 @@ import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.session.SessionHandler;
 import server.middleware.AppMiddleware;
-import server.middleware.Middleware;
 import util.Config;
 import util.TriFunction;
 import util.Util;
@@ -38,9 +37,10 @@ public class App extends AbstractHandler{
     private Config config;
     private ConnectionPool connectionPool;
     private AppRouter appRouter = new AppRouter();
-    private List<Middleware> middlewares = new LinkedList<>();
 
-    private final ThreadLocal<DBConnection> dbConnections = new ThreadLocal<>();
+    private List<Handler> appHandlers = new ArrayList<>();
+
+    private final ThreadLocal<DB> dbConnections = new ThreadLocal<>();
 
     public App(){
         this.config = new Config();
@@ -54,14 +54,16 @@ public class App extends AbstractHandler{
         }
     }
 
-    public DBConnection getDb(String db){
+    public DB db(String db){
         if (!this.config.useConnectionPool) throw new RuntimeException();
-        dbConnections.set(new DBConnection(connectionPool.get(db)));
+        dbConnections.set(new DB(connectionPool.get(db)));
         return dbConnections.get();
     }
 
     public void listen(int port) throws Exception {
         server = new Server(port);
+
+        HandlerList handlers = new HandlerList();
 
         if (config.getServeStatic()){
             ResourceHandler rh = new ResourceHandler();
@@ -70,19 +72,22 @@ public class App extends AbstractHandler{
             rh.setWelcomeFiles(new String[]{ "index.html" });
             rh.setMinMemoryMappedContentLength(-1);
 
-            HandlerList handlers = new HandlerList();
-            handlers.setHandlers( new Handler[] {new SessionHandler(), rh, this});
-            server.setHandler(handlers);
+            appHandlers.add(0, rh);
+            appHandlers.add(0, new SessionHandler());
+            appHandlers.add(this);
         } else {
-            server.setHandler(this);
+            appHandlers.add(this);
         }
+        handlers.setHandlers(appHandlers.toArray(new Handler[appHandlers.size()]));
 
+        server.setHandler(handlers);
         server.start();
         server.join();
     }
 
     @Override
     public void handle(String s, Request jettyRequest, HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
+        System.out.println("Handler -> " + this.getClass().getSimpleName());
         AppResponse response = new AppResponse(res);
         AppRequest request = new AppRequest(jettyRequest);
 
@@ -100,14 +105,6 @@ public class App extends AbstractHandler{
             res.setStatus(404);
             jettyRequest.setHandled(true);
             return;
-        }
-        //executa todos os middlewares em ordem, se algum retornar 'false' então sai
-        for (Middleware middleware : middlewares) {
-            boolean canContinue = middleware.execute(request, response);
-            if (!canContinue) {
-                jettyRequest.setHandled(true);
-                return;
-            }
         }
         route.execute(request, response);
 
@@ -160,17 +157,17 @@ public class App extends AbstractHandler{
         return params;
     }
 
-    public void use(Middleware middleware){
+    public void use(AbstractHandler middleware){
+        appHandlers.add(middleware);
         if (middleware instanceof AppMiddleware)
             ((AppMiddleware)middleware).init(App.this);
-        this.middlewares.add(middleware);
     }
 
     public Object get(String uri, BiFunction<AppRequest, AppResponse, Object> fn){
         return appRouter.add("GET", new Route(uri, fn));
     }
 
-    public Object get(String uri, TriFunction<DBConnection, AppRequest, AppResponse, Object> fn){
+    public Object get(String uri, TriFunction<DB, AppRequest, AppResponse, Object> fn){
         return appRouter.add("GET", new Route(uri, fn));
     }
 
@@ -178,7 +175,7 @@ public class App extends AbstractHandler{
         appRouter.add("GET", new Route(uri, fn));
     }
 
-    public void get(String uri, TriConsumer<AppRequest, AppResponse,DBConnection> fn){
+    public void get(String uri, TriConsumer<AppRequest, AppResponse, DB> fn){
         appRouter.add("GET", new Route(uri, fn));
     }
 

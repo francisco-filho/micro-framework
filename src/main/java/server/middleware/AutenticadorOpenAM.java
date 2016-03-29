@@ -1,12 +1,17 @@
 package server.middleware;
 
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import server.App;
 import server.AppRequest;
 import server.AppResponse;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -17,7 +22,7 @@ import java.util.Map;
 /**
  * Created by francisco on 26/03/16.
  */
-public class AutenticadorOpenAM implements AppMiddleware {
+public class AutenticadorOpenAM  extends AbstractHandler implements AppMiddleware {
 
     private final String USER_SESSION_ATTR = "usuario";
     private final String PROTOCOL = "http";
@@ -50,7 +55,7 @@ public class AutenticadorOpenAM implements AppMiddleware {
 
         app.get("/auth/userdetails", (req, res) -> {
             Object obj = req.getSession().getAttribute(USER_SESSION_ATTR);
-            System.err.println(app.getDb("production").list("SELECT * FROM pessoas WHERE id = 100"));
+            System.err.println(app.db("production").list("SELECT * FROM pessoas WHERE id = 100"));
             res.json(obj);
         });
     }
@@ -65,16 +70,19 @@ public class AutenticadorOpenAM implements AppMiddleware {
     }
 
     @Override
-    public boolean execute(AppRequest request, AppResponse response) throws IOException {
+    public void handle(String s, Request jettyRequest, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException, ServletException {
+        AppResponse response = new AppResponse(httpServletResponse);
+        AppRequest request = new AppRequest(jettyRequest);
+
         Cookie c = request.getCookie(SSO_COOKIE);
         Map<String, String> identityMap = new HashMap<>();
-        String TO_LOGIN = LOGIN_URL + URLEncoder.encode(String.format("%s://%s:%s", PROTOCOL, HOST, PORT));
+        String TO_LOGIN = LOGIN_URL + URLEncoder.encode(String.format("%s://%s:%s", PROTOCOL, HOST, 3000));
 
-        if (usuarioEstaNaSecao(request) && isTokenValid(c.getValue(), true)){
-            return true;
+        if (usuarioEstaNaSecao(request)){
+            return;
         }
         //não há usuário na secão, tenta cookie ou redireciona para login
-        if (!usuarioEstaNaSecao(request)) {
+        if (!usuarioEstaNaSecao(request) && isTokenValid(c.getValue(), true)) {
             String tokenIdentity, r = null;
 
             if (c != null && c.getValue() != null){
@@ -82,16 +90,16 @@ public class AutenticadorOpenAM implements AppMiddleware {
                     tokenIdentity = getToken(c.getValue());
                 } catch(Exception e){
                     response.redirectTo(TO_LOGIN);
-                    return false;
+                    return;
                 }
                 if (tokenIdentity != null) {
                     addUsuarioNaSessao(request, tokenIdentity);
                 }
             } else {
                 response.redirectTo(TO_LOGIN);
-                return false;
+                return;
             }
-            return true;
+            return;
         }
         //tem usuário e cookie não é nulo
         if (c != null){
@@ -100,7 +108,7 @@ public class AutenticadorOpenAM implements AppMiddleware {
                 tokenIdentity = getToken(c.getValue());
             } catch(Exception e){
                 response.redirectTo(TO_LOGIN);
-                return false;
+                return;
             }
             if (tokenIdentity != null) {
                 if (tokenIdentity != null) {
@@ -111,15 +119,15 @@ public class AutenticadorOpenAM implements AppMiddleware {
             } else {
                 response.redirectTo(TO_LOGIN);
             }
-            return true;
+            return;
         }
         //não tem usuário nem cookie
         if (!usuarioEstaNaSecao(request) && c == null){
             response.redirectTo(TO_LOGIN);
-            return false;
+            return;
         }
         response.redirectTo(TO_LOGIN);
-        return false;
+        return;
     }
 
     private void addUsuarioNaSessao(AppRequest req, String userIdentity){

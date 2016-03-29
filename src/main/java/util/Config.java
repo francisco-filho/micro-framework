@@ -6,7 +6,6 @@
 
 package util;
 
-import database.DBConnection;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 

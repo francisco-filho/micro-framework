@@ -88,4 +88,8 @@ public class AppRequest {
         }
         return null;
     }
+
+    public void end() {
+        this.request.setHandled(true);
+    }
 }

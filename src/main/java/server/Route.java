@@ -1,9 +1,8 @@
 package server;
 
-import database.DBConnection;
+import database.DB;
 import database.TriConsumer;
 
-import javax.security.auth.login.LoginContext;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -69,12 +68,12 @@ public class Route {
         return false;
     }
 
-    public void execute(AppRequest request, AppResponse response, DBConnection dbConnection) {
+    public void execute(AppRequest request, AppResponse response, DB dbConnection) {
         execute(request, response);
 
         if (fn instanceof TriConsumer){
-            TriConsumer<AppRequest, AppResponse, DBConnection> toExecute =
-                    (TriConsumer<AppRequest, AppResponse, DBConnection>)fn;
+            TriConsumer<AppRequest, AppResponse, DB> toExecute =
+                    (TriConsumer<AppRequest, AppResponse, DB>)fn;
             response.getHttpServletResponse().setStatus(200);
             toExecute.accept(request, response, dbConnection);
             request.getRequest().setHandled(true);
