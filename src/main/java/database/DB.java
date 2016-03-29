@@ -16,18 +16,18 @@ import java.util.logging.Logger;
 /**
  * Created by F3445038 on 12/11/2014.
  */
-public class DBConnection implements DatabaseInterface {
+public class DB implements DatabaseInterface {
 
     protected Connection conn = null;
     public final int BATCH_SIZE = 10_000;
 
     Map<String,Object> config = new HashMap<>();
 
-    public DBConnection(String db) {
+    public DB(String db) {
        this.config = new Config().get(db);
     }
 
-    public DBConnection(ComboPooledDataSource cpds){
+    public DB(ComboPooledDataSource cpds){
         try {
             this.conn = cpds.getConnection();
         } catch (SQLException e) {
@@ -35,7 +35,7 @@ public class DBConnection implements DatabaseInterface {
         }
     }
 
-    public DBConnection(Map<String, Object> c){
+    public DB(Map<String, Object> c){
         this.config = c;
     }
 
@@ -54,7 +54,7 @@ public class DBConnection implements DatabaseInterface {
             Class.forName("com.ibm.db2.jcc.DB2Driver");
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException ex) {
-            Logger.getLogger(DBConnection.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         conn = DriverManager.getConnection(url, user, password);
@@ -352,7 +352,7 @@ public class DBConnection implements DatabaseInterface {
         return files;
     }
 
-    public void tx(DatabaseConsumer<DBConnection> db) throws SQLException {
+    public void tx(DatabaseConsumer<DB> db) throws SQLException {
         try {
             this.getConnection().setAutoCommit(false);
             db.accept(this);
@@ -363,7 +363,7 @@ public class DBConnection implements DatabaseInterface {
         }
     }
 
-    public RowList tx(Function<DBConnection, Object> db)  {
+    public RowList tx(Function<DB, Object> db)  {
         RowList result = null;
         try {
             this.getConnection().setAutoCommit(false);
