@@ -2,6 +2,7 @@ package server;
 
 import database.DB;
 import database.TriConsumer;
+import org.eclipse.jetty.server.Request;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -22,7 +23,7 @@ public class Route {
     private final Pattern uriPattern;
     private final Object fn;
     private final Pattern fieldPattern  = Pattern.compile(":([a-zA-Z0-9]+)");
-    public final Map<String, String> requestData = new HashMap<>();
+
 
     public Route(String uri, Object fn){
         this.uri = uri;
@@ -40,7 +41,9 @@ public class Route {
         return this.uri;
     }
 
-    public boolean test(String uriEntrada){
+    public boolean test(AppRequest request){
+        String uriEntrada = request.getRequest().getRequestURI();
+        Map<String, String> requestData = new HashMap<>();
 
         if (this.uri.equals(uriEntrada)){
             return true;
@@ -61,6 +64,7 @@ public class Route {
                         requestData.put(paramNames.get(x - 1), match.group(x));
                     }
                 }
+                if (requestData.size() > 0) request.params.putAll(requestData);
                 if (uriPattern.matcher(uriEntrada).matches())
                     return true;
             }
@@ -82,10 +86,6 @@ public class Route {
 
     public void execute(AppRequest request, AppResponse response){
 
-        if (this.requestData.size() > 0){
-
-            request.params.putAll(this.requestData);
-        }
         if (fn == null){
             response.getHttpServletResponse().setStatus(404);
             request.getRequest().setHandled(true);
@@ -120,7 +120,6 @@ public class Route {
                 "uri='" + uri + '\'' +
                 ", uriPattern=" + uriPattern +
                 ", fieldPattern=" + fieldPattern +
-                ", requestData=" + requestData +
                 '}';
     }
 }

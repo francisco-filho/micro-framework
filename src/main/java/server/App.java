@@ -87,7 +87,6 @@ public class App extends AbstractHandler{
 
     @Override
     public void handle(String s, Request jettyRequest, HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
-        System.out.println("Handler -> " + this.getClass().getSimpleName());
         AppResponse response = new AppResponse(res);
         AppRequest request = new AppRequest(jettyRequest);
 
@@ -97,10 +96,7 @@ public class App extends AbstractHandler{
             request.params.putAll(processFile(req));
         }
 
-        Route route;
-        synchronized (AppRouter.class) {
-            route = appRouter.getRoute(request.getRequest());
-        }
+        Route route = appRouter.getRoute(request);
         if (route == null) {
             res.setStatus(404);
             jettyRequest.setHandled(true);

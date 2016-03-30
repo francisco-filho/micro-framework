@@ -21,10 +21,10 @@ public class AppRouter {
         return this;
     }
 
-    public Route getRoute(Request request){
-        List<Route> routeList = routes.get(request.getMethod().trim());
+    public Route getRoute(AppRequest request){
+        List<Route> routeList = routes.get(request.getRequest().getMethod().trim());
         for(Route route: routeList){
-            if (route.test(request.getRequestURI())){
+            if (route.test(request)){
                 return route;
             }
         }
