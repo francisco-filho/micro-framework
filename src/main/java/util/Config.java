@@ -27,7 +27,7 @@ public class Config {
     }
 
     private void loadConfigFromFile(){
-        JSONObject obj = Util.readJson("config.json");
+        JSONObject obj = Util.readResourceConfigFile("config.json");
         defaultDBConnection = (String)obj.get("default-connection");
 
         JSONArray jsonArray = (JSONArray)obj.get("databases");

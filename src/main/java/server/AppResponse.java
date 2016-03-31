@@ -1,5 +1,6 @@
 package server;
 
+import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 import javax.servlet.http.HttpServletResponse;
@@ -27,6 +28,9 @@ public class AppResponse {
     public void json(Object obj){
         try {
             response.setContentType("application/json");
+            if (obj instanceof String)
+                obj = JSONValue.parse((String)obj);
+
             response.getWriter().println(JSONValue.toJSONString(obj));
         } catch (IOException e) {
             e.printStackTrace();

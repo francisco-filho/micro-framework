@@ -1,6 +1,5 @@
 package server.middleware;
 
-import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import server.App;
 import server.AppRequest;

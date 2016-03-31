@@ -225,11 +225,13 @@ public class Util {
         return new File(classLoader.getResource("public").getFile());
     }
 
-    public static JSONObject readJson(String resourceFileName){
+    public static JSONObject readResourceConfigFile(String resourceFileName){
         JSONParser parser = new JSONParser();
         try {
             ClassLoader classLoader = parser.getClass().getClassLoader();
             File file = new File(classLoader.getResource(resourceFileName).getFile());
+            if (!file.exists())
+                file = new File("config.json");
 
             FileReader fileReader = new FileReader(file);
 

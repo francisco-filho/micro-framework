@@ -87,7 +87,7 @@ public class App extends AbstractHandler{
 
     @Override
     public void handle(String s, Request jettyRequest, HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
-        System.out.println("Handler -> " + this.getClass().getSimpleName());
+//        System.out.println("Handler -> " + this.getClass().getSimpleName());
         AppResponse response = new AppResponse(res);
         AppRequest request = new AppRequest(jettyRequest);
 
@@ -163,21 +163,21 @@ public class App extends AbstractHandler{
             ((AppMiddleware)middleware).init(App.this);
     }
 
-    public Object get(String uri, BiFunction<AppRequest, AppResponse, Object> fn){
-        return appRouter.add("GET", new Route(uri, fn));
-    }
+//    public Object get(String uri, BiFunction<AppRequest, AppResponse, Object> fn){
+//        return appRouter.add("GET", new Route(uri, fn));
+//    }
 
-    public Object get(String uri, TriFunction<DB, AppRequest, AppResponse, Object> fn){
-        return appRouter.add("GET", new Route(uri, fn));
-    }
+//    public Object get(String uri, TriFunction<DB, AppRequest, AppResponse, Object> fn){
+//        return appRouter.add("GET", new Route(uri, fn));
+//    }
 
     public void get(String uri, BiConsumer<AppRequest, AppResponse> fn){
         appRouter.add("GET", new Route(uri, fn));
     }
 
-    public void get(String uri, TriConsumer<AppRequest, AppResponse, DB> fn){
-        appRouter.add("GET", new Route(uri, fn));
-    }
+//    public void get(String uri, TriConsumer<AppRequest, AppResponse, DB> fn){
+//        appRouter.add("GET", new Route(uri, fn));
+//    }
 
     public void post(String uri, BiConsumer<AppRequest, AppResponse> fn){
         appRouter.add("POST", new Route(uri, fn));

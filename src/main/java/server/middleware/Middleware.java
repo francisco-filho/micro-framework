@@ -1,6 +1,5 @@
 package server.middleware;
 
-import server.App;
 import server.AppRequest;
 import server.AppResponse;
 

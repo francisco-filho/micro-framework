@@ -12,6 +12,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -43,7 +44,10 @@ public class AutenticadorOpenAM  extends AbstractHandler implements AppMiddlewar
     public void init(App app) {
         app.get("/auth/logout", (req, res) -> {
             //remove usuário da sessão
-            req.getSession().setAttribute(USER_SESSION_ATTR, null);
+            HttpSession session = req.getSession();
+            synchronized (session) {
+                session.setAttribute(USER_SESSION_ATTR, null);
+            }
             //limpa cookies
             Cookie cookie = req.getCookie(SSO_COOKIE);
             cookie.setMaxAge(0);
@@ -131,8 +135,11 @@ public class AutenticadorOpenAM  extends AbstractHandler implements AppMiddlewar
     }
 
     private void addUsuarioNaSessao(AppRequest req, String userIdentity){
-        req.getSession().setMaxInactiveInterval(MAX_SESSION_INTERVAL);
-        req.getSession().setAttribute(USER_SESSION_ATTR, parseIdentity(userIdentity));
+        HttpSession session = req.getSession();
+        synchronized (session) {
+            req.getSession().setAttribute(USER_SESSION_ATTR, parseIdentity(userIdentity));
+            req.getSession().setMaxInactiveInterval(MAX_SESSION_INTERVAL);
+        }
     }
 
     private Map<String, String> parseIdentity(String identityString){

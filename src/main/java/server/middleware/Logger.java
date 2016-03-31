@@ -4,7 +4,6 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import server.App;
 import server.AppRequest;
-import server.AppResponse;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;

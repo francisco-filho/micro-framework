@@ -2,8 +2,6 @@ import database.DB;
 import database.Row;
 import database.RowList;
 import server.App;
-import server.middleware.AutenticadorOpenAM;
-import server.middleware.Logger;
 
 /**
  * Created by f3445038 on 21/03/16.
@@ -16,12 +14,16 @@ public class Main {
             config.useConnectionPool(true);
         });
         //app.use(new AutenticadorOpenAM());
-        app.use(new Logger());
+        //app.use(new Logger());
 
         app.get("/api/teste/:id", (req, res) -> {
             DB db = app.db("production");
             Row row = db.first("SELECT DISTINCT id, municipio, uf FROM municipios WHERE id = ?", req.params.getInt("id"));
             res.json(row);
+        });
+
+        app.get("/api/json", (req, res) -> {
+            res.json("{\"texto\": \"hello world\"}");
         });
 
         app.get("/api/teste/:name/:id", (req, res) -> {
