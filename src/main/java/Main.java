@@ -1,6 +1,7 @@
 import database.DB;
 import database.Row;
 import database.RowList;
+import org.json.simple.JSONValue;
 import server.App;
 
 /**
@@ -18,11 +19,11 @@ public class Main {
 
         app.get("/api/teste/:id", (req, res) -> {
             DB db = app.db("production");
-            Row row = db.first("SELECT DISTINCT id, municipio, uf FROM municipios WHERE id = ?", req.params.getInt("id"));
+            Row row = db.first("SELECT prefixo, nome, uf FROM dependencia WHERE prefixo = ?", req.params.getInt("id"));
             res.json(row);
         });
 
-        app.get("/api/json", (req, res) -> {
+        app.get("/api/texto", (req, res) -> {
             res.json("{\"texto\": \"hello world\"}");
         });
 

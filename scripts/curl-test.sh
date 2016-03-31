@@ -9,5 +9,5 @@
 
 for i in `seq 1 $1`;
 do
-    curl -X GET $2/${i} &
+    curl -s -X GET $2/${i} &
 done
