@@ -11,9 +11,17 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.session.SessionHandler;
+
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.resource.ResourceCollection;
+import org.eclipse.jetty.webapp.WebAppContext;
 import server.middleware.AppMiddleware;
 import util.Config;
 import util.TriFunction;
@@ -66,13 +74,12 @@ public class App extends AbstractHandler{
         HandlerList handlers = new HandlerList();
 
         if (config.getServeStatic()){
-            ResourceHandler rh = new ResourceHandler();
-            rh.setResourceBase(Util.getPublicDirectory().getAbsolutePath());
-            rh.setDirectoriesListed(true);
-            rh.setWelcomeFiles(new String[]{ "index.html" });
-            rh.setMinMemoryMappedContentLength(-1);
 
-            appHandlers.add(0, rh);
+            ServletContextHandler context = getServletContextHandler();
+            ServletHolder holderHome  = getServletHolder("public");
+            context.addServlet(holderHome,"/*");
+
+            appHandlers.add(0, context);
             appHandlers.add(0, new SessionHandler());
             appHandlers.add(this);
         } else {
@@ -83,6 +90,25 @@ public class App extends AbstractHandler{
         server.setHandler(handlers);
         server.start();
         server.join();
+    }
+
+    private ServletHolder getServletHolder(String dir) {
+        ServletHolder holderHome = new ServletHolder(dir, DefaultServlet.class);
+        holderHome.setInitParameter("dirAllowed","true");
+        holderHome.setInitParameter("resourceBase", "/home/francisco/apps/dev/jetty-framework/src/main/resources/"+dir+"/");
+        holderHome.setInitParameter("welcomeServlets","true");
+        holderHome.setInitParameter("redirectWelcome", "false");
+        return holderHome;
+    }
+
+    private ServletContextHandler getServletContextHandler() {
+        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SECURITY);
+        context.setResourceBase("/home/francisco/apps/dev/jetty-framework/src/main/resources/");
+        context.setWelcomeFiles(new String[]{ "index.html" });
+        context.setInitParameter("useFileMappedBuffer", "false");
+        context.setInitParameter("maxCachedFiles", "0");
+        context.setInitParameter("dirAllowed","true");
+        return context;
     }
 
     @Override
