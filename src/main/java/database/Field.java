@@ -25,8 +25,10 @@ public class Field {
         classes.put("smallint", Short.class);
         classes.put("integer", Integer.class);
         classes.put("bigint", BigInteger.class);
-        classes.put("date", java.sql.Date.class);
+        classes.put("date", Date.class);
         classes.put("timestamp", Timestamp.class);
+        classes.put("timestamp without time zone", Timestamp.class);
+
     }
 
     private Field(){}
@@ -38,7 +40,7 @@ public class Field {
         f.setPrimaryKey((Boolean)map.get("is_primary_key"));
         f.setNullable((String)map.get("is_nullable") == "YES" ? true: false);
         f.setMaxLength(map.get("max_length") != null ? (Integer)map.get("max_length") : null);
-        f.stringToClass((String) map.get("data_type"));
+        f.setType(f.stringToClass((String) map.get("data_type")));
         return f;
     }
 

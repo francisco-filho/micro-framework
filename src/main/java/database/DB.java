@@ -288,7 +288,7 @@ public class DB implements DatabaseInterface {
         return 0;
     }
 
-    public Row insertAndReturn(String query, Object... params) {
+    public Row executeAndReturn(String query, Object... params) {
         PreparedStatement stmt = null;
         String q = query.replace(";$", "").replace("$", " RETURN *");
         return first(query, params);
