@@ -59,6 +59,7 @@ public class Util {
             d0.setCurrency( Currency.getInstance("BRL"));
     }
 
+
     public static String getSql(String sql, String file) throws FileNotFoundException {
         if (sql == null) {
 
@@ -259,5 +260,14 @@ public class Util {
         }
         sb.append(text.substring(last));
         return sb.toString();
+    }
+
+    public static Map<String,Object> map(Object... o) {
+        if ((o.length % 2) > 0) throw new RuntimeException("The number of params must be even");
+        Map<String, Object> map = new LinkedHashMap<>();
+        for(int i = 0; i < o.length; i+=2){
+            map.put((String)o[i], o[i + 1]);
+        }
+        return map;
     }
 }
