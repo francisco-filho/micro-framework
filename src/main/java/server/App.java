@@ -74,12 +74,13 @@ public class App extends AbstractHandler{
         HandlerList handlers = new HandlerList();
 
         if (config.getServeStatic()){
+            ResourceHandler rh = new ResourceHandler();
+            rh.setResourceBase(Util.getPublicDirectory().getAbsolutePath());
+            rh.setDirectoriesListed(true);
+            rh.setWelcomeFiles(new String[]{ "index.html" });
+            rh.setMinMemoryMappedContentLength(-1);
 
-            ServletContextHandler context = getServletContextHandler();
-            ServletHolder holderHome  = getServletHolder("public");
-            context.addServlet(holderHome,"/*");
-
-            appHandlers.add(0, context);
+            appHandlers.add(0, rh);
             appHandlers.add(0, new SessionHandler());
             appHandlers.add(this);
         } else {
@@ -180,7 +181,7 @@ public class App extends AbstractHandler{
     }
 
     public void use(AbstractHandler middleware){
-        appHandlers.add(middleware);
+        appHandlers.add(0, middleware);
         if (middleware instanceof AppMiddleware)
             ((AppMiddleware)middleware).init(App.this);
     }

@@ -1,7 +1,7 @@
 import database.DB;
+import database.DBRelation;
 import database.Row;
 import database.RowList;
-import org.json.simple.JSONValue;
 import server.App;
 
 /**
@@ -20,6 +20,20 @@ public class Main {
         app.get("/api/teste/:id", (req, res) -> {
             DB db = app.db("production");
             Row row = db.first("SELECT prefixo, nome, uf FROM dependencia WHERE prefixo = ?", req.params.getInt("id"));
+
+            DBRelation rel = new DBRelation(db, "public.funcionario");
+
+            Row me = rel.get("F3445038");
+            System.out.println(me);
+            /*
+            rel.get(1);
+            rel.create(row);
+            rel.update(row);
+            rel.save(row);
+            rel.list(row);
+            rel.delete(1);
+            */
+
             res.json(row);
         });
 

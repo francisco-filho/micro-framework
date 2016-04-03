@@ -3,3 +3,10 @@
 out/
 out/**/*
 src/main/resources/config.json
+node_modules/
+**/node_modules/
+**/typings/
+**/public/app/*.js
+**/public/app/*.js.map
+**/public/app/**/*.js
+**/**/*.js.map
