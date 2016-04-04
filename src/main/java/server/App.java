@@ -1,8 +1,6 @@
 package server;
 
-import database.ConnectionPool;
-import database.DB;
-import database.DBTable;
+import database.*;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -17,6 +15,7 @@ import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.Fields;
 import server.middleware.AppMiddleware;
 import util.Config;
 import util.Util;
@@ -40,19 +39,19 @@ public class App extends AbstractHandler{
     private ConnectionPool connectionPool;
     private AppRouter appRouter = new AppRouter();
 
-    private Map<String, DBTable> tables = new HashMap<>();
+    private Map<String, Map<String,Field>> schemas = new HashMap<>();
 
-    public DBTable table(String dbname, String relation) {
-        DBTable t = tables.get(dbname + "." + relation);
-        synchronized (tables){
+    public DBTable table(DB db, String relation) {
+        Map<String, Field> t = schemas.get(db.name + "." + relation);
+        synchronized (schemas){
             if (t == null) {
-                synchronized (tables){
-                    tables.put(dbname + "." + relation, new DBTable(db(dbname), relation));
+                synchronized (schemas){
+                    schemas.put(db.name + "." + relation, DBSchema.getFields(db, relation));
                 }
-                t = tables.get(dbname + "." + relation);
-            } else return t;
+                t = schemas.get(db.name + "." + relation);
+            } else return new DBTable(db, relation, t);
         }
-        return t;
+        return new DBTable(db, relation, t);
     }
 
     private List<Handler> appHandlers = new ArrayList<>();

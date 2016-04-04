@@ -21,14 +21,17 @@ public class DB implements DatabaseInterface {
 
     protected Connection conn = null;
     public final int BATCH_SIZE = 10_000;
+    public String name;
 
     Map<String,Object> config = new HashMap<>();
 
     public DB(String db) {
-       this.config = new Config().get(db);
+        this.config = new Config().get(db);
+        this.name = db;
     }
 
     public DB(ComboPooledDataSource cpds){
+        this.name = cpds.getDataSourceName();
         try {
             this.conn = cpds.getConnection();
         } catch (SQLException e) {

@@ -179,7 +179,7 @@ public class Util {
      * Varre um Map pegando somente um 'key' e inseri em uma lista do tipo especificado
      * @param map   fonte de dados
      * @param key   key que formará a lista
-     * @param type  tipo de dados do map a qual o 'key' se refere
+     * @param type  tipo de dados do mapOf a qual o 'key' se refere
      * @return 
      */
     public static <T extends Object> List<T> listMapToList(List<Map<String,Object>> map, String key, Class<T> type){
@@ -262,7 +262,7 @@ public class Util {
         return sb.toString();
     }
 
-    public static Map<String,Object> map(Object... o) {
+    public static Map<String,Object> mapOf(Object... o) {
         if ((o.length % 2) > 0) throw new RuntimeException("The number of params must be even");
         Map<String, Object> map = new LinkedHashMap<>();
         for(int i = 0; i < o.length; i+=2){

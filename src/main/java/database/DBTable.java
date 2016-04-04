@@ -13,6 +13,7 @@ public class DBTable {
 
     private DB db;
     private final String name;
+    private String dbname;
     private Field primaryKey;
     private final Map<String, Field> fields = new LinkedHashMap<>();
 
@@ -22,10 +23,24 @@ public class DBTable {
 
     public DBTable(DB db, String relation) {
         this.name = relation;
+        this.dbname = db.name;
         this.db = db;
 
         String[] relationParts = relation.split(Pattern.quote("."));
         Map<String, Field> fs = DBSchema.getFields(db, relation);
+        fs.forEach((k, v) -> {
+            fields.put(k, v);
+            if (v.getPrimaryKey() != null && v.getPrimaryKey().equals(true)) this.primaryKey = v;
+        });
+    }
+
+    public DBTable(DB db, String relation, Map<String, Field> t) {
+        this.name = relation;
+        this.dbname = db.name;
+        this.db = db;
+
+        String[] relationParts = relation.split(Pattern.quote("."));
+        Map<String, Field> fs = t;
         fs.forEach((k, v) -> {
             fields.put(k, v);
             if (v.getPrimaryKey() != null && v.getPrimaryKey().equals(true)) this.primaryKey = v;
