@@ -42,16 +42,16 @@ public class App extends AbstractHandler{
     private Map<String, Map<String,Field>> schemas = new HashMap<>();
 
     public DBTable table(DB db, String relation) {
-        Map<String, Field> t = schemas.get(db.name + "." + relation);
+        Map<String, Field> schema = schemas.get(db.name + "." + relation);
         synchronized (schemas){
-            if (t == null) {
+            if (schema == null) {
                 synchronized (schemas){
                     schemas.put(db.name + "." + relation, DBSchema.getFields(db, relation));
                 }
-                t = schemas.get(db.name + "." + relation);
-            } else return new DBTable(db, relation, t);
+                schema = schemas.get(db.name + "." + relation);
+            } else return new DBTable(db, relation, schema);
         }
-        return new DBTable(db, relation, t);
+        return new DBTable(db, relation, schema);
     }
 
     private List<Handler> appHandlers = new ArrayList<>();
