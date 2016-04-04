@@ -2,7 +2,7 @@ package server;
 
 import database.ConnectionPool;
 import database.DB;
-import database.TriConsumer;
+import database.DBTable;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -11,29 +11,23 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.session.SessionHandler;
-
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.resource.Resource;
-import org.eclipse.jetty.util.resource.ResourceCollection;
-import org.eclipse.jetty.webapp.WebAppContext;
 import server.middleware.AppMiddleware;
 import util.Config;
-import util.TriFunction;
 import util.Util;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 /**
@@ -45,6 +39,21 @@ public class App extends AbstractHandler{
     private Config config;
     private ConnectionPool connectionPool;
     private AppRouter appRouter = new AppRouter();
+
+    private Map<String, DBTable> tables = new HashMap<>();
+
+    public DBTable table(String dbname, String relation) {
+        DBTable t = tables.get(dbname + "." + relation);
+        synchronized (tables){
+            if (t == null) {
+                synchronized (tables){
+                    tables.put(dbname + "." + relation, new DBTable(db(dbname), relation));
+                }
+                t = tables.get(dbname + "." + relation);
+            } else return t;
+        }
+        return t;
+    }
 
     private List<Handler> appHandlers = new ArrayList<>();
 
