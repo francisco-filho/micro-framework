@@ -1,8 +1,10 @@
 import database.DB;
-import database.DBRelation;
 import database.Row;
 import database.RowList;
 import server.App;
+
+import java.io.*;
+import java.net.URLConnection;
 
 /**
  * Created by f3445038 on 21/03/16.
@@ -21,24 +23,33 @@ public class Main {
             DB db = app.db("production");
             Row row = db.first("SELECT prefixo, nome, uf FROM dependencia WHERE prefixo = ?", req.params.getInt("id"));
 
-            DBRelation rel = new DBRelation(db, "public.funcionario");
-
-            Row me = rel.get("F3445038");
-            System.out.println(me);
-            /*
-            rel.get(1);
-            rel.create(row);
-            rel.update(row);
-            rel.save(row);
-            rel.list(row);
-            rel.delete(1);
-            */
-
             res.json(row);
         });
 
         app.get("/api/texto", (req, res) -> {
             res.json("{\"texto\": \"hello world\"}");
+        });
+
+        app.get("/api/download/:filename", (req, res) -> {
+            String filename  = "/home/francisco/Imagens/" + req.params.getString("filename");
+            File f = new File(filename);
+
+            if (!f.exists()) throw new RuntimeException("File doesn't exists");
+            res.getHttpServletResponse().setContentType(URLConnection.guessContentTypeFromName(f.getAbsolutePath()));
+
+            try (BufferedInputStream bs = new BufferedInputStream(new FileInputStream(f))){
+                int bytesRead = 0;
+                byte[] buffer = new byte[1024];
+                BufferedOutputStream bos = new BufferedOutputStream(res.getHttpServletResponse().getOutputStream());
+
+                while ((bytesRead = bs.read(buffer)) != -1){
+                    bos.write(buffer);
+                }
+                bos.flush();
+
+            }catch (IOException iox){
+                iox.printStackTrace();
+            }
         });
 
         app.get("/api/teste/:name/:id", (req, res) -> {

@@ -22,7 +22,7 @@ public class Route {
     private final String uri;
     private final Pattern uriPattern;
     private final Object fn;
-    private final Pattern fieldPattern  = Pattern.compile(":([a-zA-Z0-9]+)");
+    private final Pattern fieldPattern  = Pattern.compile(":([a-zA-Z0-9\\\\.]+)");
 
 
     public Route(String uri, Object fn){
@@ -31,7 +31,7 @@ public class Route {
 
         if (uri.contains(":")) {
             Matcher matcher = fieldPattern.matcher(this.uri);
-            this.uriPattern = Pattern.compile(matcher.replaceAll("([a-zA-Z0-9]+)"));
+            this.uriPattern = Pattern.compile(matcher.replaceAll("([a-zA-Z0-9\\\\.]+)"));
         } else {
             this.uriPattern = null;
         }
