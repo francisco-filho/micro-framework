@@ -5,7 +5,8 @@ import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.io.*;
+import java.net.URLConnection;
 
 /**
  * Created by francisco on 21/03/16.
@@ -66,6 +67,31 @@ public class AppResponse {
             response.sendRedirect(loginURI);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void setContentType(String contentType) {
+        this.getHttpServletResponse().setContentType(contentType);
+    }
+
+    public OutputStream getOutputStream() throws IOException {
+        return getHttpServletResponse().getOutputStream();
+    }
+
+    public void file(String filename) {
+        this.setContentType(URLConnection.guessContentTypeFromName(filename));
+
+        try (BufferedInputStream bs = new BufferedInputStream(new FileInputStream(filename))){
+            byte[] buffer = new byte[1024];
+            BufferedOutputStream bos = new BufferedOutputStream(this.getOutputStream());
+
+            while (bs.read(buffer) != -1){
+                bos.write(buffer);
+            }
+            bos.flush();
+
+        }catch (IOException iox){
+            iox.printStackTrace();
         }
     }
 }
