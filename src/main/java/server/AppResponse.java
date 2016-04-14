@@ -78,7 +78,12 @@ public class AppResponse {
         return getHttpServletResponse().getOutputStream();
     }
 
-    public void file(String filename) {
+    public void file(File f){
+        if (!f.exists())
+            throw new RuntimeException("File doesn't exists");
+
+        String filename = f.getAbsolutePath();
+
         this.setContentType(URLConnection.guessContentTypeFromName(filename));
 
         try (BufferedInputStream bs = new BufferedInputStream(new FileInputStream(filename))){
@@ -93,5 +98,9 @@ public class AppResponse {
         }catch (IOException iox){
             iox.printStackTrace();
         }
+    }
+
+    public void file(String filename) {
+        file(new File(filename));
     }
 }

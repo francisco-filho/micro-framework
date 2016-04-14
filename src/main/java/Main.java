@@ -3,9 +3,6 @@ import database.Row;
 import database.RowList;
 import server.App;
 
-import java.io.File;
-import java.nio.file.Files;
-
 import static util.Util.mapOf;
 
 public class Main {
@@ -30,11 +27,9 @@ public class Main {
         });
 
         app.get("/api/download/:filename", (req, res) -> {
-            File f = new File("/home/francisco/Imagens/" + req.params.getString("filename"));
-            if (!f.exists())
-                throw new RuntimeException("File doesn't exists");
-            else
-                res.file(f.getAbsolutePath());
+            String fileName  = "/home/francisco/Imagens/" + req.params.getString("filename");
+
+            res.file(fileName);
         });
 
         app.get("/api/teste/:name/:id", (req, res) -> {
