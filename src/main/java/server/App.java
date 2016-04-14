@@ -15,7 +15,6 @@ import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.Fields;
 import server.middleware.AppMiddleware;
 import util.Config;
 import util.Util;
@@ -69,6 +68,7 @@ public class App extends AbstractHandler{
             this.connectionPool  = new ConnectionPool(this.config);
         }
     }
+
 
     public DB db(String db){
         if (!this.config.useConnectionPool) throw new RuntimeException();
@@ -193,6 +193,16 @@ public class App extends AbstractHandler{
         if (middleware instanceof AppMiddleware)
             ((AppMiddleware)middleware).init(App.this);
     }
+
+    public void use(AbstractModule module) {
+        module.setup(this);
+        /*module.getRoutes().forEach((k, v) -> {
+            v.forEach((route) -> {
+                appRouter.add(k, route);
+            });
+        });*/
+    }
+
 
 //    public Object get(String uri, BiFunction<AppRequest, AppResponse, Object> fn){
 //        return appRouter.add("GET", new Route(uri, fn));

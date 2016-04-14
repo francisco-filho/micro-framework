@@ -8,17 +8,17 @@ import static util.Util.mapOf;
 public class Main {
 
     public static void main(String[] args) throws Exception {
+
         App app = new App((config) -> {
             config.setServeStatic(true);
             config.useConnectionPool(true);
         });
-        //app.use(new AutenticadorOpenAM());
-        //app.use(new Logger());
+//        app.use(new AutenticadorOpenAM());
+//        app.use(new Logger());
 
         app.get("/api/teste/:id", (req, res) -> {
             DB db = app.db("production");
             Row row = db.first("SELECT prefixo, nome, uf FROM dependencia WHERE prefixo = ?", req.params.getInt("id"));
-
             res.json(row);
         });
 
@@ -28,7 +28,6 @@ public class Main {
 
         app.get("/api/download/:filename", (req, res) -> {
             String fileName  = "/home/francisco/Imagens/" + req.params.getString("filename");
-
             res.file(fileName);
         });
 
