@@ -31,10 +31,17 @@ public class AppRequest {
     public AppRequest(Request request){
         this.request = request;
 
-        if (request.getContentType() == null){
+        if (true){
+//        if (request.getContentType() == null){
+            request.getParameterMap();
             MultiMap<String> parameters = request.getQueryParameters();
-            if (parameters != null)
-                params.putAll(parameters);
+            if (parameters != null){
+                parameters.forEach((k, v) -> {
+                    params.put(k, v.get(0));
+                });
+                //params.putAll(parameters);
+            }
+
             return;
         }
 

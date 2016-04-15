@@ -1,6 +1,7 @@
 package server;
 
 import database.*;
+import database.Field;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -15,6 +16,7 @@ import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import server.annotations.Post;
 import server.middleware.AppMiddleware;
 import util.Config;
 import util.Util;
@@ -24,6 +26,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -39,6 +43,8 @@ public class App extends AbstractHandler{
     private AppRouter appRouter = new AppRouter();
 
     private Map<String, Map<String,Field>> schemas = new HashMap<>();
+
+    private Map<String, Object> controllers = new HashMap<>();
 
     public DBTable table(DB db, String relation) {
         Map<String, Field> schema = schemas.get(db.name + "." + relation);
@@ -194,14 +200,68 @@ public class App extends AbstractHandler{
             ((AppMiddleware)middleware).init(App.this);
     }
 
-    public void use(AbstractModule module) {
+    /*public void use(AppController module) {
         module.setup(this);
-        /*module.getRoutes().forEach((k, v) -> {
+        module.getRoutes().forEach((k, v) -> {
             v.forEach((route) -> {
                 appRouter.add(k, route);
             });
-        });*/
+        });
+    }*/
+
+    public void addController(Class<?> cls) {
+        Arrays.asList(cls.getDeclaredMethods()).stream()
+        .filter((method) -> {
+            Class<?>[] types  = method.getParameterTypes();
+
+            return (types.length == 2 &&
+                    types[0].equals(AppRequest.class) &&
+                    types[1].equals(AppResponse.class) &&
+                    Modifier.isPublic(method.getModifiers()));
+        })
+        .forEach((method) -> {
+            Annotation[] a = method.getAnnotations();
+            String route = String.format("/%s/%s", cls.getSimpleName(), method.getName()).toLowerCase();
+            if (method.getAnnotation(Post.class) != null){
+                this.post(route, (req, res) -> {
+                    executeMethod(cls, method, req, res);
+                });
+                return;
+            }
+            this.get(route, (req, res) -> {
+                executeMethod(cls, method, req, res);
+            });
+        });
     }
+
+    private void executeMethod(Class<?> cls, Method method, AppRequest req, AppResponse res) {
+        Object o = null;
+        try {
+            if (!controllers.containsKey(cls.getCanonicalName())) {
+                o = cls.newInstance();
+                synchronized (controllers.getClass()){
+                    if (!controllers.containsKey(cls.getCanonicalName())){
+                        controllers.put(cls.getCanonicalName(), o);
+
+                        java.lang.reflect.Field appField = cls.getDeclaredField("app");
+                        if (appField != null) {
+                            appField.setAccessible(true);
+                            appField.set(o, App.this);
+                        }
+                    }
+                }
+            }
+            else { o = controllers.get(cls.getCanonicalName()); }
+
+            method.invoke(o, req, res);
+        } catch (InstantiationException | IllegalAccessException |
+                InvocationTargetException | NoSuchFieldException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    ;
 
 
 //    public Object get(String uri, BiFunction<AppRequest, AppResponse, Object> fn){
