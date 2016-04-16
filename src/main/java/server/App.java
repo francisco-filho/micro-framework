@@ -26,15 +26,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-/**
- * Created by f3445038 on 21/03/16.
- */
 public class App extends AbstractHandler{
 
     private Server server = null;
@@ -45,6 +41,10 @@ public class App extends AbstractHandler{
     private Map<String, Map<String,Field>> schemas = new HashMap<>();
 
     private Map<String, Object> controllers = new HashMap<>();
+
+    private List<Handler> appHandlers = new ArrayList<>();
+
+    private final ThreadLocal<DB> dbConnections = new ThreadLocal<>();
 
     public DBTable table(DB db, String relation) {
         Map<String, Field> schema = schemas.get(db.name + "." + relation);
@@ -58,10 +58,6 @@ public class App extends AbstractHandler{
         }
         return new DBTable(db, relation, schema);
     }
-
-    private List<Handler> appHandlers = new ArrayList<>();
-
-    private final ThreadLocal<DB> dbConnections = new ThreadLocal<>();
 
     public App(){
         this.config = new Config();
@@ -134,7 +130,7 @@ public class App extends AbstractHandler{
         //handling files
         if (req.getContentType() != null && (req.getContentType().startsWith("multipart/form-data")
                 || req.getContentType().equals("false"))){
-            request.params.putAll(processFile(req));
+            request.files.addAll(processFile(req));
         }
 
         Route route = appRouter.getRoute(request);
@@ -151,7 +147,7 @@ public class App extends AbstractHandler{
         jettyRequest.setHandled(true);
     }
 
-    private Map<String,Object> processFile(HttpServletRequest req){
+    private List<FileItem> processFile(HttpServletRequest req){
         final int MAX_REQUEST_SIZE = 1_000_000;
         Map<String, Object> params = new LinkedHashMap<>();
         List<FileItem> files = new LinkedList<>();
@@ -191,7 +187,7 @@ public class App extends AbstractHandler{
         } catch (FileUploadException e) {
             e.printStackTrace();
         }
-        return params;
+        return files;
     }
 
     public void use(AbstractHandler middleware){
@@ -200,16 +196,7 @@ public class App extends AbstractHandler{
             ((AppMiddleware)middleware).init(App.this);
     }
 
-    /*public void use(AppController module) {
-        module.setup(this);
-        module.getRoutes().forEach((k, v) -> {
-            v.forEach((route) -> {
-                appRouter.add(k, route);
-            });
-        });
-    }*/
-
-    public void addController(Class<?> cls) {
+    public void use(Class<?> cls) {
         Arrays.asList(cls.getDeclaredMethods()).stream()
         .filter((method) -> {
             Class<?>[] types  = method.getParameterTypes();
@@ -220,7 +207,6 @@ public class App extends AbstractHandler{
                     Modifier.isPublic(method.getModifiers()));
         })
         .forEach((method) -> {
-            Annotation[] a = method.getAnnotations();
             String route = String.format("/%s/%s", cls.getSimpleName(), method.getName()).toLowerCase();
             if (method.getAnnotation(Post.class) != null){
                 this.post(route, (req, res) -> {
@@ -261,24 +247,9 @@ public class App extends AbstractHandler{
         }
     }
 
-    ;
-
-
-//    public Object get(String uri, BiFunction<AppRequest, AppResponse, Object> fn){
-//        return appRouter.add("GET", new Route(uri, fn));
-//    }
-
-//    public Object get(String uri, TriFunction<DB, AppRequest, AppResponse, Object> fn){
-//        return appRouter.add("GET", new Route(uri, fn));
-//    }
-
     public void get(String uri, BiConsumer<AppRequest, AppResponse> fn){
         appRouter.add("GET", new Route(uri, fn));
     }
-
-//    public void get(String uri, TriConsumer<AppRequest, AppResponse, DB> fn){
-//        appRouter.add("GET", new Route(uri, fn));
-//    }
 
     public void post(String uri, BiConsumer<AppRequest, AppResponse> fn){
         appRouter.add("POST", new Route(uri, fn));

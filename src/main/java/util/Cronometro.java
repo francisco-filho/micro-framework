@@ -2,9 +2,6 @@ package util;
 
 import java.util.Calendar;
 
-/**
- * Created by F3445038 on 19/12/2014.
- */
 public class Cronometro {
 
     private Calendar time;

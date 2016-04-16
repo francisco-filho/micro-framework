@@ -2,12 +2,13 @@ import database.DB;
 import database.Row;
 import database.RowList;
 import server.App;
+import util.FileUtil;
 
 import static util.Util.mapOf;
+import static util.FileUtil.*;
 
 public class Main {
 
-    //TODO: FileUtil.saveAs(FileItem, Filename)
     //TODO: Util.toCSV(RowList | DataList) -> res.csv
     //TODO: Util.toXLS(RowList | DataList) -> res.xls
     //TODO: DB.dataList(String, ...) returns { fields:[], data[]}
@@ -22,16 +23,19 @@ public class Main {
             config.useConnectionPool(true);
         });
 
-        app.addController(Funcionarios.class);
+        app.use(Funcionarios.class);
 
         app.get("/api/texto", (req, res) -> {
-            System.out.println(req.params.get("id"));
+            DB db = app.db("production");
+
+            db.list(sql("municipios"), 1).forEach(System.out::println);
+
             res.json(mapOf("texto","hello world"));
         });
 
         app.get("/api/teste/:id", (req, res) -> {
             DB db = app.db("production");
-            Row row = db.first("SELECT prefixo, nome, uf FROM dependencia WHERE prefixo = ?", req.params.getInt("id"));
+            Row row = db.first(sql("municipios"), req.params.getInt("id"));
             res.json(row);
         });
 
@@ -40,11 +44,15 @@ public class Main {
             res.file(fileName);
         });
 
+        app.get("/api/upload/", (req, res) -> {
+            FileUtil.saveFiles(req.files, "/home/francisco/Imagens/");
+        });
+
         app.get("/api/teste/:name/:id", (req, res) -> {
             DB db = app.db("production");
 
             RowList row = db.tx((portal) -> {
-                return portal.list("SELECT DISTINCT municipio, uf FROM municipios WHERE id = ?", req.params.getInt("id"));
+                return portal.list(sql("municipios"), req.params.getInt("id"));
             });
             res.status(200).json(row);
         });

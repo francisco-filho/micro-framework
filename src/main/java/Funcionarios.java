@@ -13,11 +13,12 @@ public class Funcionarios {
 
     public void one(AppRequest req, AppResponse res){
         DB db = app.db("production");
-        RowList rows = db.list("SELECT DISTINCT d.* FROM dependencia d WHERE prefixo = ? LIMIT 10", req.params.getInt("prefixo"));
+        RowList rows = db.list("SELECT DISTINCT d.* FROM dependencia d WHERE prefixo = ? LIMIT 10",
+                req.params.getInt("prefixo"));
         res.json(rows);
     }
 
-    @Post
+    @Post(uri="/funcionarios/todo/:id")
     public void two(AppRequest req, AppResponse res){
         res.json(mapOf("success", true));
     }

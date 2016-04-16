@@ -14,7 +14,6 @@ import java.util.Map;
 
 /**
  *
- * @author f3445038
  */
 public class Config {
     private Map<String,JSONObject> itemConfig = new HashMap<>();

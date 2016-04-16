@@ -7,9 +7,6 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by F3445038 on 12/11/2014.
- */
 public interface DatabaseInterface {
 
     Connection connect() throws SQLException;

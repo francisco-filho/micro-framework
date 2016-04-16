@@ -14,9 +14,6 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * Created by F3445038 on 12/11/2014.
- */
 public class DB implements DatabaseInterface {
 
     protected Connection conn = null;

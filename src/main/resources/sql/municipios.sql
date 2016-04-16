@@ -1,0 +1,1 @@
+SELECT DISTINCT municipio, uf FROM municipios WHERE id = ?

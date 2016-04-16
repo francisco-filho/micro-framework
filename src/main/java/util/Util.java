@@ -30,10 +30,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- *
- * @author f3445038
- */
 public class Util {
     
     private static DecimalFormat d = new DecimalFormat();
