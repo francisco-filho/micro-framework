@@ -5,7 +5,8 @@ import server.AppRequest;
 import server.AppResponse;
 import server.annotations.Post;
 
-import static util.Util.mapOf;
+import static util.Util.*;
+import static util.FileUtil.*;
 
 public class Funcionarios {
 
@@ -13,8 +14,7 @@ public class Funcionarios {
 
     public void one(AppRequest req, AppResponse res){
         DB db = app.db("production");
-        RowList rows = db.list("SELECT DISTINCT d.* FROM dependencia d WHERE prefixo = ? LIMIT 10",
-                req.params.getInt("prefixo"));
+        RowList rows = db.list(sql("municipios"), req.params.getInt("id"));
         res.json(rows);
     }
 
