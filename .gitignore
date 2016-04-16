@@ -10,3 +10,5 @@ node_modules/
 **/public/app/*.js.map
 **/public/app/**/*.js
 **/**/*.js.map
+.gradle/
+build/
