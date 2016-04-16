@@ -43,6 +43,22 @@ public class FileUtil {
         }
     }
 
+    public static void copy(String from, String to) {
+        File newFile = new File(to);
+        if (newFile.exists()) return;
+
+        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(new File(from)));
+                BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(newFile))){
+            byte[] buffer = new byte[1024];
+            int read;
+            while ((read = (bis.read(buffer))) != -1) {
+                bos.write(buffer);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void saveFiles(List<FileItem> itens, String toDirectory) {
         if (itens == null) return;
 
