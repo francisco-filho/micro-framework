@@ -130,6 +130,41 @@ public class DB implements DatabaseInterface {
         return list;
     }
 
+    public DataList dataList(String query, Object... params) {
+        DataList list = new DataList();
+        ResultSet rs = null;
+        int columnLength = 0;
+
+        if (params == null){
+            params = new Object[]{null};
+        }
+        try {
+            rs = this.query(query, params);
+
+            ResultSetMetaData rsmd = rs.getMetaData();
+            columnLength = rsmd.getColumnCount();
+
+            List<String> columns = new ArrayList<>();
+            for(int i = 1; i <= columnLength; i++){
+                columns.add(rsmd.getColumnName(i));
+            }
+            list.setColumns(columns);
+
+            while(rs.next()){
+                List<Object> row = new ArrayList<>();
+
+                for(int i = 1; i <= columnLength; i++){
+                    row.add(rs.getObject(i));
+                }
+                list.addRow(row);
+            }
+        } catch(SQLException ex){
+            ex.printStackTrace();
+        }
+
+        return list;
+    }
+
     public Row first(String query, Object... params) {
         Row row = new Row();
         try {
