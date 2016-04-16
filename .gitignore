@@ -1,5 +1,4 @@
 *.iml
-.idea/
 out/
 out/**/*
 src/main/resources/config.json
@@ -10,5 +9,4 @@ node_modules/
 **/public/app/*.js.map
 **/public/app/**/*.js
 **/**/*.js.map
-.gradle/
 build/
