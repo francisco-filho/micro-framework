@@ -18,6 +18,8 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
+        FileUtil.copy("/home/francisco/.bashrc", "/home/francisco/.bashrc4");
+
         App app = new App((config) -> {
             config.setServeStatic(true);
             config.useConnectionPool(true);
@@ -31,6 +33,11 @@ public class Main {
             db.list(sql("municipios"), 1).forEach(System.out::println);
 
             res.json(mapOf("texto","hello world"));
+        });
+
+        app.get("/api/data", (req, res) -> {
+            DB db = app.db("production");
+            res.json(db.dataList("SELECT * FROM municipios LIMIT 5"));
         });
 
         app.get("/api/teste/:id", (req, res) -> {
