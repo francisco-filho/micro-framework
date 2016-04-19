@@ -1,7 +1,15 @@
 apply plugin: 'application'
 apply plugin: 'idea'
 
-mainClassName = 'Main'
+mainClassName = 'pgadmin.PgAdmin'
+
+jar {
+    manifest {
+        attributes(
+            'Main-Class': 'pgadmin.PgAdmin'
+        )
+    }
+}
 
 repositories {
     mavenLocal()

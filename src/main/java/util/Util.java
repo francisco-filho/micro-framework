@@ -227,8 +227,9 @@ public class Util {
         try {
             ClassLoader classLoader = parser.getClass().getClassLoader();
             File file = new File(classLoader.getResource(resourceFileName).getFile());
+
             if (!file.exists())
-                file = new File("config.json");
+                file = new File(System.getProperty("user.dir") + "/config.json");
 
             FileReader fileReader = new FileReader(file);
 

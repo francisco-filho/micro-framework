@@ -70,12 +70,18 @@ public class AppResponse {
         }
     }
 
-    public void setContentType(String contentType) {
+    public AppResponse setContentType(String contentType) {
         this.getHttpServletResponse().setContentType(contentType);
+        return this;
     }
 
     public OutputStream getOutputStream() throws IOException {
         return getHttpServletResponse().getOutputStream();
+    }
+
+    public AppResponse addHeader(String key, String value) {
+        getHttpServletResponse().addHeader(key, value);
+        return this;
     }
 
     public void file(File f){

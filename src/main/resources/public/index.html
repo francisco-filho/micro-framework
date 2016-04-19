@@ -1,12 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Angular 2 QuickStart</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- 1. Load libraries -->
+    <!-- IE required polyfills, in this exact order -->
+    <script src="node_modules/es6-shim/es6-shim.min.js"></script>
+    <script src="node_modules/systemjs/dist/system-polyfills.js"></script>
+    <script src="node_modules/angular2/es6/dev/src/testing/shims_for_IE.js"></script>
+
+    <script src="node_modules/angular2/bundles/angular2-polyfills.js"></script>
+    <script src="node_modules/systemjs/dist/system.src.js"></script>
+    <script src="node_modules/rxjs/bundles/Rx.js"></script>
+    <script src="node_modules/angular2/bundles/angular2.dev.js"></script>
+    <script src="node_modules/angular2/bundles/http.dev.js"></script>
+
+    <!-- 2. Configure SystemJS -->
+    <script>
+        System.config({
+            packages: {
+                app: {
+                    format: 'register',
+                    defaultExtension: 'js'
+                }
+            }
+        });
+        System.import('app/main')
+                .then(null, console.error.bind(console));
+    </script>
 </head>
+
+<!-- 3. Display the application -->
 <body>
-<h1>Static Content</h1>
-<h2>Novidades</h2>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aspernatur dolore maxime neque quidem tempore vero.</p>
+<my-app>Loading ...</my-app>
 </body>
+<script id="__bs_script__">//<![CDATA[
+document.write("<script async src='http://localhost:3001/browser-sync/browser-sync-client.2.12.3.js'><\/script>".replace("HOST", location.hostname));
+//]]></script>
 </html>

@@ -269,7 +269,10 @@ public class DB implements DatabaseInterface {
         ResultSetMetaData rsmd = rs.getMetaData();
         int columnLength = rsmd.getColumnCount();
 
-        OutputStream output = new BufferedOutputStream(System.out);
+
+//        OutputStreamWriter writer = new OutputStreamWriter(System.out);
+//        BufferedWriter output = new BufferedWriter(writer, 64 * 1024);
+        OutputStream output = new BufferedOutputStream(System.out, (16 * 1024));
         int i = 0;
         Object o = null;
         while (rs.next()){
@@ -279,7 +282,7 @@ public class DB implements DatabaseInterface {
                 }
                 o = rs.getObject(i+1);
                 if (o != null){
-                    output.write( (o).toString().replace(delimiter,' ').replace('\n',' ').getBytes() );
+                    output.write( (o).toString().replace(delimiter,' ').replace('\n',' ').getBytes());
                 } else {
                     continue;
                 }

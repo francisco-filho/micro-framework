@@ -4,6 +4,11 @@ import database.RowList;
 import server.App;
 import util.FileUtil;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.List;
+
 import static util.Util.mapOf;
 import static util.FileUtil.*;
 
@@ -18,12 +23,11 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
-        FileUtil.copy("/home/francisco/.bashrc", "/home/francisco/.bashrc4");
-
         App app = new App((config) -> {
             config.setServeStatic(true);
             config.useConnectionPool(true);
         });
+
 
         app.use(Funcionarios.class);
 
@@ -36,8 +40,8 @@ public class Main {
         });
 
         app.get("/api/data", (req, res) -> {
-            DB db = app.db("production");
-            res.json(db.dataList("SELECT * FROM municipios LIMIT 5"));
+            res.json(app.db("production")
+                        .dataList("SELECT * FROM municipios LIMIT 5"));
         });
 
         app.get("/api/teste/:id", (req, res) -> {

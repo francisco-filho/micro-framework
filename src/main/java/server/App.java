@@ -84,15 +84,20 @@ public class App extends AbstractHandler{
         HandlerList handlers = new HandlerList();
 
         if (config.getServeStatic()){
+            ServletContextHandler context = getServletContextHandler();
+            ServletHolder holderHome  = getServletHolder("public");
+            context.addServlet(holderHome,"/*");
+
+/*
             ResourceHandler rh = new ResourceHandler();
             rh.setResourceBase(Util.getPublicDirectory().getAbsolutePath());
             rh.setDirectoriesListed(true);
             rh.setWelcomeFiles(new String[]{ "index.html" });
             rh.setMinMemoryMappedContentLength(-1);
-
-            appHandlers.add(0, rh);
+*/
             appHandlers.add(0, new SessionHandler());
             appHandlers.add(this);
+            appHandlers.add(context);
         } else {
             appHandlers.add(this);
         }
@@ -134,17 +139,18 @@ public class App extends AbstractHandler{
         }
 
         Route route = appRouter.getRoute(request);
-        if (route == null) {
+        if (route == null && !config.getServeStatic()) {
             res.setStatus(404);
             jettyRequest.setHandled(true);
             return;
         }
-        route.execute(request, response);
+        if (route != null)
+            route.execute(request, response);
 
         if (dbConnections.get() != null){
             dbConnections.get().disconnect();
         }
-        jettyRequest.setHandled(true);
+        if (!config.getServeStatic()) jettyRequest.setHandled(true);
     }
 
     private List<FileItem> processFile(HttpServletRequest req){

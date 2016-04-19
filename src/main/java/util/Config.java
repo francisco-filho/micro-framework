@@ -17,7 +17,7 @@ import java.util.Map;
  */
 public class Config {
     private Map<String,JSONObject> itemConfig = new HashMap<>();
-    private boolean serveStatic = false;
+    private boolean serveStatic = true;
     private String defaultDBConnection = null;
     public boolean useConnectionPool = true;
 
